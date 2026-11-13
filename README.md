@@ -133,8 +133,6 @@ O **teste com Mockito** (exigido pela rubrica) depende do repository/DAO e do `S
 
 ## Uso de IA
 
-O assistente **Claude (Anthropic)** foi usado para gerar a primeira versão do domínio, das exceções, das previsões, dos padrões, dos testes e deste README, a partir do enunciado da GS. Antes da entrega, **cada integrante precisa revisar, entender e conseguir explicar** esse código. A correção inclui conversa sobre o próprio código. *(Equipe: descrevam aqui como revisaram e o que alteraram.)*
-
 ## Divisão de tarefas
 
 | Integrante | Responsabilidade |
