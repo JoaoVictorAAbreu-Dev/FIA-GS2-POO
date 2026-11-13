@@ -36,6 +36,20 @@ class ConfiguracaoSistemaTest {
     }
 
     @Test
+    void parametrosAlteraveisSaoVolateisParaFicaremVisiveisEntreThreads() throws NoSuchFieldException {
+        // Arrange
+        String[] campos = {"janelaMediaMovel", "leiturasPorPeriodoComparacao", "tipoPrevisaoPadrao"};
+
+        for (String campo : campos) {
+            // Act
+            int modificadores = ConfiguracaoSistema.class.getDeclaredField(campo).getModifiers();
+
+            // Assert
+            assertTrue(Modifier.isVolatile(modificadores), campo + " deveria ser volatile");
+        }
+    }
+
+    @Test
     void limiaresPadraoCriamTerritorioValidoESaoSomenteLeitura() {
         // Arrange
         ConfiguracaoSistema config = ConfiguracaoSistema.getInstancia();

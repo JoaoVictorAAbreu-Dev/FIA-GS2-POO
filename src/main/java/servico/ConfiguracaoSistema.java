@@ -15,7 +15,9 @@ import java.util.Objects;
  * <p>Por que Singleton: fábrica, serviço e menu precisam enxergar <b>os mesmos</b>
  * parâmetros; se cada um criasse sua configuração, mudar a janela da média
  * móvel no menu não afetaria as previsões. Construtor privado + inicialização
- * preguiçosa e thread-safe pelo idiom "holder".</p>
+ * preguiçosa e thread-safe pelo idiom "holder". Os parâmetros alteráveis são
+ * {@code volatile}, então uma alteração fica visível para todas as threads
+ * (cada setter altera um único campo; não há operação composta a proteger).</p>
  *
  * <p>O que fica aqui: só parâmetros globais. Os limiares padrão são somente
  * leitura e servem para criar o {@link dominio.DadosTerritorio}; a alteração
@@ -38,9 +40,9 @@ public final class ConfiguracaoSistema {
         LIMIARES_PADRAO = Collections.unmodifiableMap(limiares);
     }
 
-    private int janelaMediaMovel;
-    private int leiturasPorPeriodoComparacao;
-    private TipoPrevisao tipoPrevisaoPadrao;
+    private volatile int janelaMediaMovel;
+    private volatile int leiturasPorPeriodoComparacao;
+    private volatile TipoPrevisao tipoPrevisaoPadrao;
 
     private ConfiguracaoSistema() {
         restaurarPadroes();
