@@ -1,4 +1,4 @@
-# Territory Predictive Insights (GS 2026/2 · POO · Turma de Fevereiro)
+# Territory Predictive Insights (GS 2026/2 · POO )
 
 Plataforma de monitoramento territorial em console (tema **CitizenTech**). O sistema lê sensores simulados, prevê o próximo valor de cada sensor a partir do histórico e emite alertas **ATENÇÃO / ALERTA / CRÍTICO** explicando o motivo.
 
