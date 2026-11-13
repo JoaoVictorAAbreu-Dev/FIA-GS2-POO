@@ -36,22 +36,45 @@ public record Alerta(Long id, String sensorId, TipoSensor tipo, NivelAlerta nive
                     + tipo.formatar(valorPrevisto) + ") não atinge o limite (" + tipo.formatar(limiteUltrapassado)
                     + ").");
         }
+        // O limite do nível é limiar + ordem × degrau; o limiar de ATENÇÃO implícito precisa ser positivo.
+        double limiarImplicito = limiteUltrapassado - nivel.getOrdem() * tipo.getDegrauEntreNiveis();
+        if (limiarImplicito <= 0) {
+            throw new DadosInvalidosException("Alerta incoerente para " + sensorId + ": o limite de "
+                    + tipo.formatar(limiteUltrapassado) + " é baixo demais para o nível " + nivel.getRotulo() + ".");
+        }
+        // O nível registrado precisa ser o mais grave atingido.
+        Optional<NivelAlerta> proximo = nivel.proximoNivel();
+        double limiteDoProximo = limiteUltrapassado + tipo.getDegrauEntreNiveis();
+        if (proximo.isPresent() && valorPrevisto >= limiteDoProximo + TOLERANCIA) {
+            throw new DadosInvalidosException("Alerta incoerente para " + sensorId + ": a previsão de "
+                    + tipo.formatar(valorPrevisto) + " já atinge o nível " + proximo.get().getRotulo() + " ("
+                    + tipo.formatar(limiteDoProximo) + "), não " + nivel.getRotulo() + ".");
+        }
         sensorId = sensorId.strip();
     }
 
+    /** Margem para erros de arredondamento de ponto flutuante ao recalcular limites. */
+    private static final double TOLERANCIA = 1e-9;
+
     /**
-     * Compara a previsão com o limiar do território e cria o alerta do nível
-     * mais grave atingido.
+     * Compara a previsão com o limiar do território <b>para o tipo da própria
+     * previsão</b> e cria o alerta do nível mais grave atingido. Buscar o limiar
+     * aqui dentro impede usar, por engano, o limiar de outra grandeza.
      *
-     * @param limiar limiar de ATENÇÃO do tipo (ex.: {@code dadosTerritorio.getLimiar(tipo)})
      * @return vazio se não há previsão (dados insuficientes) ou se ela fica abaixo do limiar
+     * @throws DadosInvalidosException se o território não for informado
      */
-    public static Optional<Alerta> avaliar(ResultadoPrevisao previsao, double limiar, LocalDateTime dataHora) {
+    public static Optional<Alerta> avaliar(ResultadoPrevisao previsao, DadosTerritorio territorio,
+                                           LocalDateTime dataHora) {
+        if (territorio == null) {
+            throw new DadosInvalidosException("Informe o território para avaliar a previsão.");
+        }
         if (previsao == null || !previsao.temPrevisao()) {
             return Optional.empty();
         }
         double valor = previsao.valorPrevisto().getAsDouble();
         TipoSensor tipo = previsao.tipo();
+        double limiar = territorio.getLimiar(tipo);
         return NivelAlerta.classificar(valor, limiar, tipo)
                 .map(nivel -> new Alerta(null, previsao.sensorId(), tipo, nivel, valor,
                         nivel.limite(limiar, tipo), previsao.estrategia(), dataHora));

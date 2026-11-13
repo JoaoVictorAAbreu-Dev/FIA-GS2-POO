@@ -62,7 +62,10 @@ public enum TipoSensor {
 
     /**
      * Regra única para limiares de risco deste tipo: número finito, positivo e
-     * dentro da faixa física (um limiar inalcançável desligaria os alertas).
+     * baixo o bastante para que o limite do nível mais grave
+     * ({@code limiar + 2 × degrau}) ainda caiba na faixa física. Como as
+     * previsões são limitadas à faixa física, um limiar maior tornaria os níveis
+     * mais graves impossíveis de atingir.
      *
      * @throws DadosInvalidosException ex.: "O limiar de chuva deve ser positivo; valor recebido: -5,0"
      */
@@ -75,10 +78,18 @@ public enum TipoSensor {
             throw new DadosInvalidosException("O limiar de " + descricao
                     + " deve ser positivo; valor recebido: " + Formatos.numero(limiar));
         }
-        if (limiar > maximoFisico) {
+        double maiorLimiar = getMaiorLimiarPermitido();
+        if (limiar > maiorLimiar) {
+            NivelAlerta maisGrave = NivelAlerta.maisGrave();
             throw new DadosInvalidosException("O limiar de " + descricao + " não pode passar de "
-                    + formatar(maximoFisico) + "; valor recebido: " + Formatos.numero(limiar));
+                    + formatar(maiorLimiar) + " (o nível " + maisGrave.getRotulo() + " precisa caber na faixa física, até "
+                    + formatar(maximoFisico) + "); valor recebido: " + Formatos.numero(limiar));
         }
+    }
+
+    /** Maior limiar aceito: aquele cujo nível mais grave coincide com o máximo físico. */
+    public double getMaiorLimiarPermitido() {
+        return maximoFisico - NivelAlerta.maisGrave().getOrdem() * degrauEntreNiveis;
     }
 
     /** Traz um valor calculado (ex.: uma extrapolação) para dentro da faixa física. */

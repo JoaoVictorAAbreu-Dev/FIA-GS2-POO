@@ -51,6 +51,23 @@ public enum NivelAlerta {
         return Optional.empty();
     }
 
+    /** Nível imediatamente mais grave, ou vazio se este já é o mais grave. */
+    public Optional<NivelAlerta> proximoNivel() {
+        NivelAlerta[] niveis = values();
+        return ordinal() + 1 < niveis.length ? Optional.of(niveis[ordinal() + 1]) : Optional.empty();
+    }
+
+    /** O nível mais grave da escala (hoje, CRÍTICO). */
+    public static NivelAlerta maisGrave() {
+        NivelAlerta[] niveis = values();
+        return niveis[niveis.length - 1];
+    }
+
+    /** Posição na escala: 0 para ATENÇÃO, 1 para ALERTA, 2 para CRÍTICO. */
+    public int getOrdem() {
+        return ordem;
+    }
+
     public String getRotulo() {
         return rotulo;
     }

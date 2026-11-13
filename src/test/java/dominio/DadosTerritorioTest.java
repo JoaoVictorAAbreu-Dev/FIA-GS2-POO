@@ -9,6 +9,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DadosTerritorioTest {
 
@@ -63,6 +64,20 @@ class DadosTerritorioTest {
                 () -> territorio.alterarLimiar(CODIGO, TipoSensor.TEMPERATURA, 80.0));
         assertThrows(DadosInvalidosException.class,
                 () -> territorio.alterarLimiar(CODIGO, TipoSensor.TEMPERATURA, Double.NaN));
+    }
+
+    @Test
+    void recusaLimiarQueTornariaOsNiveisMaisGravesInalcancaveis() {
+        // Arrange: chuva vai até 300 mm/h; CRÍTICO = limiar + 2×15, então o maior limiar é 270
+        // Act
+        DadosInvalidosException erro = assertThrows(DadosInvalidosException.class,
+                () -> territorio.alterarLimiar(CODIGO, TipoSensor.PRECIPITACAO, 290.0));
+        territorio.alterarLimiar(CODIGO, TipoSensor.PRECIPITACAO, 270.0);
+
+        // Assert
+        assertTrue(erro.getMessage().contains("não pode passar de 270,0 mm/h"), erro.getMessage());
+        assertEquals(NivelAlerta.CRITICO, NivelAlerta.classificar(300.0,
+                territorio.getLimiar(TipoSensor.PRECIPITACAO), TipoSensor.PRECIPITACAO).orElseThrow());
     }
 
     @Test

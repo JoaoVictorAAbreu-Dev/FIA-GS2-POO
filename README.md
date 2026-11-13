@@ -58,13 +58,13 @@ Os pacotes seguem a estrutura sugerida no enunciado (`dominio`, `excecao`, `pers
 - **`Medicao`** (`record`, imutável): `(id, sensorId, tipo, valor, dataHora)`. O construtor compacto rejeita sensor vazio, tipo ou data nulos, id ≤ 0, NaN, infinito e valores fora da faixa física. Por isso não existe `Medicao` inválida em memória.
 - **`DadosTerritorio`**: atributos privados e **nenhum setter público**. Limiares e população só mudam por `alterarLimiar(codigo, tipo, valor)` e `alterarPopulacaoEstimada(codigo, valor)`, que conferem o código de acesso (comparação em tempo constante) e validam o valor antes de gravar. Se algo falhar, nada muda.
 - **`NivelAlerta`** (enum): o limite de cada nível é `limiar + ordem × degrau do tipo`. Para chuva com limiar 30 mm/h: ATENÇÃO ≥ 30, ALERTA ≥ 45, CRÍTICO ≥ 60. Usamos um degrau aditivo em vez de percentual porque 50% acima de 35 °C seria 52 °C, um valor irreal. Cada nível traz uma orientação ("o que fazer").
-- **`Alerta`** (`record`): sensor, tipo, nível, valor previsto, limite atingido, estratégia e data/hora. `Alerta.avaliar(previsao, limiar, dataHora)` compara a previsão com o limiar e cria o alerta do nível mais grave atingido. `explicacao()` gera o texto para o menu.
+- **`Alerta`** (`record`): sensor, tipo, nível, valor previsto, limite atingido, estratégia e data/hora. `Alerta.avaliar(previsao, territorio, dataHora)` busca no território o limiar do tipo da própria previsão (impossível usar o limiar de outra grandeza) e cria o alerta do nível mais grave atingido. `explicacao()` gera o texto para o menu.
 
 ### Exceções
 
 | Exceção | Tipo | Quando é lançada |
 |---|---|---|
-| `DadosInvalidosException` | não verificada | medição fora da faixa, NaN/infinito, campo obrigatório ausente, limiar ≤ 0 ou acima da faixa, população negativa, código de acesso errado, histórico que mistura sensores, estratégia desconhecida |
+| `DadosInvalidosException` | não verificada | medição fora da faixa, NaN/infinito, campo obrigatório ausente, limiar ≤ 0 ou tão alto que o nível CRÍTICO ficaria fora da faixa física (ex.: chuva acima de 270 mm/h), alerta com nível incoerente com o limite, população negativa, código de acesso errado, histórico que mistura sensores ou tipos, estratégia desconhecida |
 | `FonteIndisponivelException` | verificada | leitura de um sensor em falha (`simularFalha()`); guarda o id do sensor em `getIdFonte()` |
 
 `DadosInvalidosException` é não verificada porque o construtor canônico de um `record` não pode declarar `throws`. `FonteIndisponivelException` é verificada porque falha de sensor é esperada em campo, e o compilador obriga quem lê um sensor a tratá-la. As mensagens citam o valor recebido, por exemplo `O limiar de chuva deve ser positivo; valor recebido: -5,0`. O código atual não tem nenhum `catch`. O menu deverá capturar as duas exceções e mostrar `getMessage()`.
@@ -115,11 +115,11 @@ Restringir as implementações de `Sensor` não protege nenhuma regra (ninguém 
 - `Alerta` tem o mesmo esquema (`comId`). `explicacao()` pode ser gravada como texto ou recalculada.
 - **Caminho JDBC:** os `record`s podem ser usados diretamente nos DAOs.
 - **Caminho Spring Data JPA:** entidade JPA não pode ser `record` (precisa de construtor sem argumentos e campos não finais). Nesse caso, crie entidades `MedicaoEntity`/`AlertaEntity` em `persistencia` e converta para os records do domínio, mantendo a validação no domínio.
-- Previsão: `fabrica.criar(tipo).prever(repositorio.buscarHistoricoPorSensor(id))` e depois `Alerta.avaliar(resultado, territorio.getLimiar(tipo), agora)`.
+- Previsão: `fabrica.criar(tipo).prever(repositorio.buscarHistoricoPorSensor(id))` e depois `Alerta.avaliar(resultado, territorio, agora)`.
 
 ## Testes
 
-49 testes JUnit 5 no padrão **AAA**, em 8 classes, com vários `assertThrows` das exceções customizadas. Os valores esperados são calculados à mão nos próprios testes (ex.: média de 10..50 = 30; comparação 20 → 40 projeta 60), então um erro de cálculo deixa o teste vermelho. Sensores usam `Random` com semente fixa para serem reproduzíveis.
+58 testes JUnit 5 no padrão **AAA**, em 8 classes, com vários `assertThrows` das exceções customizadas. Os valores esperados são calculados à mão nos próprios testes (ex.: média de 10..50 = 30; comparação 20 → 40 projeta 60), então um erro de cálculo deixa o teste vermelho. Sensores usam `Random` com semente fixa para serem reproduzíveis.
 
 O **teste com Mockito** (exigido pela rubrica) depende do repository/DAO e do `ServicoMonitoramento`, que ainda não existem. A dependência `mockito-junit-jupiter` já está no `pom.xml`.
 
