@@ -91,6 +91,42 @@ class SensorTest {
     }
 
     @Test
+    void statusDoSensorMudaJuntoComAFalhaSemPrecisarVerificar() {
+        // Arrange
+        SensorTemperatura sensor = new SensorTemperatura("TMP-03", "Termômetro", "Zona Oeste");
+
+        // Act
+        sensor.simularFalha();
+        String emFalha = sensor.toString();
+        StatusComponente statusEmFalha = sensor.getStatus();
+        sensor.restabelecer();
+
+        // Assert
+        assertEquals(StatusComponente.INDISPONIVEL, statusEmFalha);
+        assertTrue(emFalha.endsWith("[INDISPONIVEL]"), emFalha);
+        assertEquals(StatusComponente.OPERACIONAL, sensor.getStatus());
+    }
+
+    @Test
+    void pontoSemSensoresApareceIndisponivelEAcompanhaFalhas() {
+        // Arrange
+        PontoMonitoramento ponto = new PontoMonitoramento("PT-02", "Estação Nova", "Zona Oeste");
+        SensorPluviometro pluviometro = new SensorPluviometro("PLU-09", "Pluviômetro", "Zona Oeste");
+
+        // Act
+        String vazio = ponto.toString();
+        ponto.adicionarSensor(pluviometro);
+        StatusComponente comSensor = ponto.getStatus();
+        pluviometro.simularFalha();
+        StatusComponente aposFalha = ponto.getStatus();
+
+        // Assert
+        assertEquals("PT-02 - Estação Nova (Zona Oeste) [INDISPONIVEL]", vazio);
+        assertEquals(StatusComponente.OPERACIONAL, comSensor);
+        assertEquals(StatusComponente.INDISPONIVEL, aposFalha);
+    }
+
+    @Test
     void pontoRejeitaSensorComIdRepetido() {
         // Arrange
         PontoMonitoramento ponto = new PontoMonitoramento("PT-01", "Estação", "Zona Leste");

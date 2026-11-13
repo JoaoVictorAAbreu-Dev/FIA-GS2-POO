@@ -46,6 +46,16 @@ public class PontoMonitoramento extends ComponenteTerritorial {
         return novo;
     }
 
+    /**
+     * Sempre atual: o status do ponto é derivado dos sensores, então é
+     * recalculado a cada consulta. Assim um ponto recém-criado (sem sensores)
+     * aparece como INDISPONIVEL, e a falha de um sensor aparece na hora.
+     */
+    @Override
+    public StatusComponente getStatus() {
+        return verificarStatus();
+    }
+
     public List<Sensor> getSensores() {
         return Collections.unmodifiableList(sensores);
     }

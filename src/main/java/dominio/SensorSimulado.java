@@ -54,11 +54,13 @@ public abstract class SensorSimulado extends ComponenteTerritorial implements Se
     /** Simula pane (falta de energia, cabo rompido...). Próximas leituras falham. */
     public void simularFalha() {
         funcionando = false;
+        verificarStatus();
     }
 
     /** Recoloca o sensor em operação após uma falha simulada. */
     public void restabelecer() {
         funcionando = true;
+        verificarStatus();
     }
 
     @Override

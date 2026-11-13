@@ -52,6 +52,6 @@ public abstract class ComponenteTerritorial {
 
     @Override
     public String toString() {
-        return id + " - " + nome + " (" + regiao + ") [" + status + "]";
+        return id + " - " + nome + " (" + regiao + ") [" + getStatus() + "]";
     }
 }
