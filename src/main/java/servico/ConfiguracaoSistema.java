@@ -1,0 +1,110 @@
+package servico;
+
+import dominio.TipoSensor;
+import excecao.DadosInvalidosException;
+
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.Objects;
+
+/**
+ * Configuração única do sistema (Singleton): limiares padrão e parâmetros das
+ * previsões.
+ *
+ * <p>Por que Singleton: fábrica, serviço e menu precisam enxergar <b>os mesmos</b>
+ * parâmetros; se cada um criasse sua configuração, mudar a janela da média
+ * móvel no menu não afetaria as previsões. Construtor privado + inicialização
+ * preguiçosa e thread-safe pelo idiom "holder".</p>
+ *
+ * <p>O que fica aqui: só parâmetros globais. Os limiares padrão são somente
+ * leitura e servem para criar o {@link dominio.DadosTerritorio}; a alteração
+ * de limiares do território passa pelo código de acesso em
+ * {@code DadosTerritorio#alterarLimiar}, não por aqui.</p>
+ */
+public final class ConfiguracaoSistema {
+
+    public static final int JANELA_MEDIA_MOVEL_PADRAO = 5;
+    public static final int LEITURAS_POR_PERIODO_PADRAO = 3;
+    public static final TipoPrevisao TIPO_PREVISAO_PADRAO = TipoPrevisao.MEDIA_MOVEL;
+
+    private static final Map<TipoSensor, Double> LIMIARES_PADRAO;
+
+    static {
+        Map<TipoSensor, Double> limiares = new EnumMap<>(TipoSensor.class);
+        limiares.put(TipoSensor.TEMPERATURA, 35.0);   // °C: calor extremo para a região
+        limiares.put(TipoSensor.PRECIPITACAO, 30.0);  // mm/h: chuva forte, risco de alagamento
+        limiares.put(TipoSensor.CONSUMO_AGUA, 120.0); // m³/h: acima do consumo típico do setor
+        LIMIARES_PADRAO = Collections.unmodifiableMap(limiares);
+    }
+
+    private int janelaMediaMovel;
+    private int leiturasPorPeriodoComparacao;
+    private TipoPrevisao tipoPrevisaoPadrao;
+
+    private ConfiguracaoSistema() {
+        restaurarPadroes();
+    }
+
+    private static final class Holder {
+        private static final ConfiguracaoSistema INSTANCIA = new ConfiguracaoSistema();
+    }
+
+    public static ConfiguracaoSistema getInstancia() {
+        return Holder.INSTANCIA;
+    }
+
+    /** Volta aos valores de fábrica (útil no menu e para isolar testes). */
+    public void restaurarPadroes() {
+        janelaMediaMovel = JANELA_MEDIA_MOVEL_PADRAO;
+        leiturasPorPeriodoComparacao = LEITURAS_POR_PERIODO_PADRAO;
+        tipoPrevisaoPadrao = TIPO_PREVISAO_PADRAO;
+    }
+
+    /** Limiar de ATENÇÃO padrão de um tipo de sensor. */
+    public double getLimiarPadrao(TipoSensor tipo) {
+        return LIMIARES_PADRAO.get(Objects.requireNonNull(tipo, "tipo"));
+    }
+
+    /** Todos os limiares padrão (somente leitura), prontos para criar um DadosTerritorio. */
+    public Map<TipoSensor, Double> getLimiaresPadrao() {
+        return LIMIARES_PADRAO;
+    }
+
+    public int getJanelaMediaMovel() {
+        return janelaMediaMovel;
+    }
+
+    /** @throws DadosInvalidosException se a janela for menor que 2 */
+    public void definirJanelaMediaMovel(int janela) {
+        if (janela < 2) {
+            throw new DadosInvalidosException("A janela da média móvel deve ter pelo menos 2 leituras; "
+                    + "valor recebido: " + janela);
+        }
+        this.janelaMediaMovel = janela;
+    }
+
+    public int getLeiturasPorPeriodoComparacao() {
+        return leiturasPorPeriodoComparacao;
+    }
+
+    /** @throws DadosInvalidosException se o período for menor que 1 */
+    public void definirLeiturasPorPeriodoComparacao(int leituras) {
+        if (leituras < 1) {
+            throw new DadosInvalidosException("Cada período da comparação deve ter pelo menos 1 leitura; "
+                    + "valor recebido: " + leituras);
+        }
+        this.leiturasPorPeriodoComparacao = leituras;
+    }
+
+    public TipoPrevisao getTipoPrevisaoPadrao() {
+        return tipoPrevisaoPadrao;
+    }
+
+    public void definirTipoPrevisaoPadrao(TipoPrevisao tipo) {
+        if (tipo == null) {
+            throw new DadosInvalidosException("Informe a estratégia de previsão padrão.");
+        }
+        this.tipoPrevisaoPadrao = tipo;
+    }
+}
