@@ -60,6 +60,27 @@ public enum TipoSensor {
         }
     }
 
+    /**
+     * Regra única para limiares de risco deste tipo: número finito, positivo e
+     * dentro da faixa física (um limiar inalcançável desligaria os alertas).
+     *
+     * @throws DadosInvalidosException ex.: "O limiar de chuva deve ser positivo; valor recebido: -5,0"
+     */
+    public void validarLimiar(double limiar) {
+        if (Double.isNaN(limiar) || Double.isInfinite(limiar)) {
+            throw new DadosInvalidosException("O limiar de " + descricao
+                    + " precisa ser um número finito; valor recebido: " + Formatos.numero(limiar));
+        }
+        if (limiar <= 0) {
+            throw new DadosInvalidosException("O limiar de " + descricao
+                    + " deve ser positivo; valor recebido: " + Formatos.numero(limiar));
+        }
+        if (limiar > maximoFisico) {
+            throw new DadosInvalidosException("O limiar de " + descricao + " não pode passar de "
+                    + formatar(maximoFisico) + "; valor recebido: " + Formatos.numero(limiar));
+        }
+    }
+
     /** Traz um valor calculado (ex.: uma extrapolação) para dentro da faixa física. */
     public double limitarAFaixa(double valor) {
         return Math.max(minimoFisico, Math.min(maximoFisico, valor));
