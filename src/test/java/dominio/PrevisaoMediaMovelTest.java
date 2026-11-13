@@ -85,6 +85,21 @@ class PrevisaoMediaMovelTest {
     }
 
     @Test
+    void mensagemExplicaQuandoOMesmoSensorMisturaTipos() {
+        // Arrange
+        List<Medicao> historico = new ArrayList<>(HistoricoDeTeste.de("S1", TipoSensor.TEMPERATURA, 20, 21));
+        historico.addAll(HistoricoDeTeste.de("S1", TipoSensor.PRECIPITACAO, 5));
+
+        // Act
+        DadosInvalidosException erro = assertThrows(DadosInvalidosException.class,
+                () -> mediaMovel.prever(historico));
+
+        // Assert
+        assertEquals("O histórico do sensor S1 mistura os tipos temperatura e chuva; "
+                + "cada sensor mede uma única grandeza.", erro.getMessage());
+    }
+
+    @Test
     void rejeitaHistoricoNuloEJanelaPequenaDemais() {
         // Act / Assert
         assertThrows(DadosInvalidosException.class, () -> mediaMovel.prever(null));

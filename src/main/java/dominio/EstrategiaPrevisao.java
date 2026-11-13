@@ -59,9 +59,14 @@ public abstract class EstrategiaPrevisao {
             }
             if (!ordenado.isEmpty()) {
                 Medicao primeira = ordenado.get(0);
-                if (!primeira.sensorId().equals(medicao.sensorId()) || primeira.tipo() != medicao.tipo()) {
+                if (!primeira.sensorId().equals(medicao.sensorId())) {
                     throw new DadosInvalidosException("O histórico mistura os sensores " + primeira.sensorId()
                             + " e " + medicao.sensorId() + "; a previsão é feita por sensor.");
+                }
+                if (primeira.tipo() != medicao.tipo()) {
+                    throw new DadosInvalidosException("O histórico do sensor " + primeira.sensorId()
+                            + " mistura os tipos " + primeira.tipo().getDescricao() + " e "
+                            + medicao.tipo().getDescricao() + "; cada sensor mede uma única grandeza.");
                 }
             }
             ordenado.add(medicao);
