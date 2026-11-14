@@ -1,11 +1,13 @@
 package dominio;
 
+import excecao.DadosInvalidosException;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PrevisaoComparacaoTest {
@@ -65,5 +67,16 @@ class PrevisaoComparacaoTest {
         // Assert: média móvel (20+30+30+40+50)/5 = 34; comparação = 60
         assertEquals(34.0, mediaMovel, 1e-9);
         assertEquals(60.0, tendencia, 1e-9);
+    }
+
+    @Test
+    void periodoInvalidoTemMensagemClara() {
+        // Act
+        DadosInvalidosException zero = assertThrows(DadosInvalidosException.class,
+                () -> new PrevisaoComparacao(0));
+
+        // Assert: valor enorme não estoura o int ao dobrar
+        assertTrue(zero.getMessage().contains("pelo menos 1 leitura"), zero.getMessage());
+        assertThrows(DadosInvalidosException.class, () -> new PrevisaoComparacao(Integer.MAX_VALUE));
     }
 }

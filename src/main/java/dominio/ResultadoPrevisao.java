@@ -36,6 +36,10 @@ public record ResultadoPrevisao(String estrategia, String sensorId, TipoSensor t
                         + " gerou um valor não numérico; verifique o histórico.");
             }
         }
+        if (interpretacao == null || interpretacao.isBlank()) {
+            throw new DadosInvalidosException("O resultado da estratégia " + estrategia
+                    + " precisa explicar a previsão ao usuário.");
+        }
         if (leiturasUsadas < 0) {
             throw new DadosInvalidosException("Quantidade de leituras não pode ser negativa: " + leiturasUsadas);
         }

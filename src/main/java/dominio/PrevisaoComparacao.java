@@ -1,5 +1,7 @@
 package dominio;
 
+import excecao.DadosInvalidosException;
+
 import java.util.List;
 
 /**
@@ -20,9 +22,22 @@ public class PrevisaoComparacao extends EstrategiaPrevisao {
 
     /** @param leiturasPorPeriodo tamanho de cada período comparado (mínimo 1; exige o dobro no histórico) */
     public PrevisaoComparacao(int leiturasPorPeriodo) {
-        // Dois períodos completos são necessários; a classe-mãe valida o mínimo de 2.
-        super(NOME, 2 * leiturasPorPeriodo);
+        // Dois períodos completos são necessários.
+        super(NOME, minimoParaDoisPeriodos(leiturasPorPeriodo));
         this.leiturasPorPeriodo = leiturasPorPeriodo;
+    }
+
+    /**
+     * Valida antes de chamar {@code super}: sem isso, 0 geraria a mensagem
+     * enganosa "precisa de pelo menos 2 leituras; configurado: 0" e um valor
+     * enorme estouraria o {@code int} ao dobrar.
+     */
+    private static int minimoParaDoisPeriodos(int leiturasPorPeriodo) {
+        if (leiturasPorPeriodo < 1 || leiturasPorPeriodo > Integer.MAX_VALUE / 2) {
+            throw new DadosInvalidosException("Cada período da comparação deve ter pelo menos 1 leitura; "
+                    + "valor recebido: " + leiturasPorPeriodo);
+        }
+        return 2 * leiturasPorPeriodo;
     }
 
     @Override

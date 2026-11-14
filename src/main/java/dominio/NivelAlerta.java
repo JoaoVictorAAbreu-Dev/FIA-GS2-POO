@@ -1,5 +1,7 @@
 package dominio;
 
+import excecao.DadosInvalidosException;
+
 import java.util.Optional;
 
 /**
@@ -38,9 +40,12 @@ public enum NivelAlerta {
      * Nível mais grave cujo limite foi atingido pelo valor previsto, ou vazio se
      * a previsão está abaixo do limiar.
      *
-     * @throws excecao.DadosInvalidosException se o limiar for inválido para o tipo
+     * @throws DadosInvalidosException se o tipo for nulo ou o limiar for inválido para ele
      */
     public static Optional<NivelAlerta> classificar(double valorPrevisto, double limiar, TipoSensor tipo) {
+        if (tipo == null) {
+            throw new DadosInvalidosException("Informe o tipo de sensor para classificar a previsão.");
+        }
         tipo.validarLimiar(limiar);
         NivelAlerta[] niveis = values();
         // Percorre do mais grave para o mais leve: o primeiro limite atingido é o nível certo.
