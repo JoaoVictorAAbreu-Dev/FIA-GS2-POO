@@ -8,8 +8,9 @@ import java.util.List;
 
 /**
  * Local físico do território (ex.: "Estação Córrego Aricanduva") que agrupa
- * sensores. Seu status é derivado dos sensores: todos respondendo =
- * OPERACIONAL; alguns = DEGRADADO; nenhum (ou nenhum instalado) = INDISPONIVEL.
+ * sensores. Seu status é derivado dos sensores: nenhum respondendo (ou nenhum
+ * instalado) = INDISPONIVEL; algum sem resposta ou com leituras impossíveis =
+ * DEGRADADO; todos confiáveis = OPERACIONAL.
  */
 public class PontoMonitoramento extends ComponenteTerritorial {
 
@@ -35,12 +36,13 @@ public class PontoMonitoramento extends ComponenteTerritorial {
 
     @Override
     public StatusComponente verificarStatus() {
-        long funcionando = sensores.stream().filter(Sensor::estaFuncionando).count();
+        long respondendo = sensores.stream().filter(Sensor::estaFuncionando).count();
+        long confiaveis = sensores.stream().filter(Sensor::temLeiturasConfiaveis).count();
         StatusComponente novo;
-        // funcionando == 0 cobre também o ponto sem nenhum sensor instalado.
-        if (funcionando == 0) {
+        // respondendo == 0 cobre também o ponto sem nenhum sensor instalado.
+        if (respondendo == 0) {
             novo = StatusComponente.INDISPONIVEL;
-        } else if (funcionando < sensores.size()) {
+        } else if (confiaveis < sensores.size()) {
             novo = StatusComponente.DEGRADADO;
         } else {
             novo = StatusComponente.OPERACIONAL;

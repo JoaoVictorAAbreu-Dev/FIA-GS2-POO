@@ -19,8 +19,17 @@ public interface Sensor {
      */
     double lerValor() throws FonteIndisponivelException;
 
-    /** Indica se o sensor está em condições de entregar leituras. */
+    /** Indica se o sensor responde (entrega algum valor, mesmo que errado). */
     boolean estaFuncionando();
+
+    /**
+     * Indica se as leituras do sensor são confiáveis. Por padrão, todo sensor
+     * que responde é confiável; um sensor com defeito pode responder com
+     * valores impossíveis e sobrescrever este método.
+     */
+    default boolean temLeiturasConfiaveis() {
+        return estaFuncionando();
+    }
 
     /**
      * Lê o sensor e devolve uma {@link Medicao} já validada (id nulo, pronta

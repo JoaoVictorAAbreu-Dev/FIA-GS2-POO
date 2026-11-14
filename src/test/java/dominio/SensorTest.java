@@ -159,6 +159,20 @@ class SensorTest {
     }
 
     @Test
+    void pontoComSensorDescalibradoFicaDegradado() {
+        // Arrange
+        SensorPluviometro pluviometro = new SensorPluviometro("PLU-06", "Pluviômetro", "Zona Sul");
+        PontoMonitoramento ponto = new PontoMonitoramento("PT-06", "Estação", "Zona Sul");
+        ponto.adicionarSensor(pluviometro);
+
+        // Act
+        pluviometro.simularDefeitoDeCalibracao();
+
+        // Assert: responde, mas com leituras impossíveis
+        assertEquals(StatusComponente.DEGRADADO, ponto.getStatus());
+    }
+
+    @Test
     void falhaTemPrioridadeSobreDefeito() {
         // Arrange
         SensorTemperatura sensor = new SensorTemperatura("TMP-05", "Termômetro", "Zona Sul");

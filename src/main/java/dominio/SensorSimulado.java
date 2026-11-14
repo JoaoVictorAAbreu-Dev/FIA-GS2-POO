@@ -71,6 +71,12 @@ public abstract class SensorSimulado extends ComponenteTerritorial implements Se
         return funcionando;
     }
 
+    /** Responde e não está descalibrado. */
+    @Override
+    public boolean temLeiturasConfiaveis() {
+        return funcionando && !descalibrado;
+    }
+
     /**
      * INDISPONIVEL se não responde; DEGRADADO se responde com defeito de
      * calibração; OPERACIONAL caso contrário.

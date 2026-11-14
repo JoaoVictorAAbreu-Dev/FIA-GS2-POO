@@ -44,8 +44,8 @@ Os pacotes seguem a estrutura sugerida no enunciado (`dominio`, `excecao`, `pers
 
 - **`ComponenteTerritorial`** (abstrata): id, nome, região e status, com `verificarStatus()` abstrato. Tem duas linhas de filhas:
   - **`SensorSimulado`** (abstrata, também implementa `Sensor`) → `SensorTemperatura`, `SensorPluviometro`, `SensorConsumoAgua`. Um sensor é um componente físico do território, então herda id/nome/região/status. A base cuida da falha simulada e do status. Cada filha sobrescreve apenas `simularLeitura()`: temperatura com distribuição normal, chuva com 60% de leituras zeradas e intensidade exponencial, consumo com picos ocasionais de vazamento.
-  - **`PontoMonitoramento`**: agrupa sensores e calcula o próprio status a partir deles (todos respondendo → OPERACIONAL; parte → DEGRADADO; nenhum → INDISPONIVEL).
-- **`Sensor`** (interface): `lerValor()`, `estaFuncionando()`, `getTipo()` e o método default `lerMedicao()`, que já devolve uma `Medicao` validada.
+  - **`PontoMonitoramento`**: agrupa sensores e calcula o próprio status a partir deles (todos confiáveis → OPERACIONAL; algum sem resposta ou descalibrado → DEGRADADO; nenhum respondendo → INDISPONIVEL).
+- **`Sensor`** (interface): `lerValor()`, `estaFuncionando()`, `getTipo()` e os métodos default `temLeiturasConfiaveis()` e `lerMedicao()`, que já devolve uma `Medicao` validada.
 - **`TipoSensor`** (enum): unidade, faixa física e degrau entre níveis de alerta de cada grandeza. **Todas** as regras de valor de medição e de limiar estão aqui, então nenhum caminho de entrada consegue contorná-las.
 
   | Tipo | Unidade | Faixa física aceita | Limiar padrão | Degrau entre níveis |
