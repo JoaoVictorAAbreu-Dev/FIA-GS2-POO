@@ -21,6 +21,8 @@ public final class Formatos {
             return valor > 0 ? "+infinito" : "-infinito";
         }
         // DecimalFormat não é thread-safe; criar por chamada é barato para mensagens.
-        return new DecimalFormat("0.0#", DecimalFormatSymbols.getInstance(PT_BR)).format(valor);
+        String texto = new DecimalFormat("0.0#", DecimalFormatSymbols.getInstance(PT_BR)).format(valor);
+        // Negativos muito pequenos (ex.: -0,001) arredondam para "-0,0"; mostra "0,0".
+        return texto.equals("-0,0") ? "0,0" : texto;
     }
 }
