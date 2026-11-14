@@ -22,6 +22,7 @@ import java.util.List;
  */
 public abstract class EstrategiaPrevisao {
 
+    // Com menos de 2 leituras nenhuma estratégia consegue calcular média ou tendência.
     private static final int MINIMO_ABSOLUTO = 2;
 
     private final String nome;
@@ -52,11 +53,13 @@ public abstract class EstrategiaPrevisao {
         if (historico == null) {
             throw new DadosInvalidosException("O histórico para a previsão não foi informado.");
         }
+        // Copia para não alterar (nem depender de) a lista de quem chamou.
         List<Medicao> ordenado = new ArrayList<>(historico.size());
         for (Medicao medicao : historico) {
             if (medicao == null) {
                 throw new DadosInvalidosException("O histórico contém uma medição nula.");
             }
+            // Basta comparar cada medição com a primeira: se todas batem com ela, batem entre si.
             if (!ordenado.isEmpty()) {
                 Medicao primeira = ordenado.get(0);
                 if (!primeira.sensorId().equals(medicao.sensorId())) {
@@ -90,6 +93,7 @@ public abstract class EstrategiaPrevisao {
     /** Resultado com valor, já trazido para a faixa física do tipo. */
     protected final ResultadoPrevisao comValor(List<Medicao> ordenado, double valor, int leiturasUsadas,
                                                String interpretacao) {
+        // A leitura mais recente fornece sensor e tipo (todas são iguais após a validação).
         Medicao referencia = ordenado.get(ordenado.size() - 1);
         double ajustado = referencia.tipo().limitarAFaixa(valor);
         return ResultadoPrevisao.comValor(nome, referencia.sensorId(), referencia.tipo(), ajustado,

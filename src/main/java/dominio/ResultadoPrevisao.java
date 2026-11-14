@@ -22,6 +22,7 @@ public record ResultadoPrevisao(String estrategia, String sensorId, TipoSensor t
         if (estrategia == null || estrategia.isBlank()) {
             throw new DadosInvalidosException("O resultado precisa informar a estratégia de previsão.");
         }
+        // Trata null como "sem previsão" para que temPrevisao() nunca lance NullPointerException.
         if (valorPrevisto == null) {
             valorPrevisto = OptionalDouble.empty();
         }
@@ -40,12 +41,16 @@ public record ResultadoPrevisao(String estrategia, String sensorId, TipoSensor t
         }
     }
 
+    // As duas fábricas abaixo são de pacote: só as estratégias de dominio montam resultados.
+
+    /** Resultado com valor previsto. */
     static ResultadoPrevisao comValor(String estrategia, String sensorId, TipoSensor tipo, double valor,
                                       int leiturasUsadas, String interpretacao) {
         return new ResultadoPrevisao(estrategia, sensorId, tipo, OptionalDouble.of(valor), leiturasUsadas,
                 interpretacao);
     }
 
+    /** Resultado sem valor, com o texto que explica por que a estratégia não previu. */
     static ResultadoPrevisao dadosInsuficientes(String estrategia, String sensorId, TipoSensor tipo,
                                                 int disponiveis, int minimo) {
         String origem = sensorId == null ? "no histórico" : "no histórico de " + sensorId;

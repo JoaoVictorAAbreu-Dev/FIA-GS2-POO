@@ -26,7 +26,9 @@ public class DadosTerritorio {
     private final String nome;
     private final String regiao;
     private int populacaoEstimada;
+    // Limiar de ATENÇÃO por tipo de sensor; os demais níveis são calculados em NivelAlerta.
     private final Map<TipoSensor, Double> limiares = new EnumMap<>(TipoSensor.class);
+    // Guardado em bytes para a comparação em tempo constante de exigirCodigoValido.
     private final byte[] codigoAcesso;
 
     /**
@@ -47,6 +49,7 @@ public class DadosTerritorio {
         if (limiaresIniciais == null) {
             throw new DadosInvalidosException("Informe os limiares iniciais do território.");
         }
+        // Percorre todos os tipos do enum (e não o mapa recebido) para garantir que nenhum ficou sem limiar.
         for (TipoSensor tipo : TipoSensor.values()) {
             Double limiar = limiaresIniciais.get(tipo);
             if (limiar == null) {
@@ -63,6 +66,7 @@ public class DadosTerritorio {
      * @throws DadosInvalidosException se o código estiver errado ou o limiar for inválido
      */
     public void alterarLimiar(String codigoInformado, TipoSensor tipo, double novoLimiar) {
+        // Valida tudo antes de gravar: se algo falhar, o limiar antigo continua valendo.
         exigirCodigoValido(codigoInformado);
         if (tipo == null) {
             throw new DadosInvalidosException("Informe o tipo de sensor do limiar.");
@@ -104,6 +108,7 @@ public class DadosTerritorio {
     }
 
     private void exigirCodigoValido(String codigoInformado) {
+        // Código nulo vira array vazio, que nunca coincide com o código cadastrado (mínimo de 4 caracteres).
         byte[] informado = codigoInformado == null
                 ? new byte[0]
                 : codigoInformado.strip().getBytes(StandardCharsets.UTF_8);

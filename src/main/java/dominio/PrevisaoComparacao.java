@@ -20,6 +20,7 @@ public class PrevisaoComparacao extends EstrategiaPrevisao {
 
     /** @param leiturasPorPeriodo tamanho de cada período comparado (mínimo 1; exige o dobro no histórico) */
     public PrevisaoComparacao(int leiturasPorPeriodo) {
+        // Dois períodos completos são necessários; a classe-mãe valida o mínimo de 2.
         super(NOME, 2 * leiturasPorPeriodo);
         this.leiturasPorPeriodo = leiturasPorPeriodo;
     }
@@ -30,11 +31,14 @@ public class PrevisaoComparacao extends EstrategiaPrevisao {
         if (!temLeiturasSuficientes(ordenado)) {
             return dadosInsuficientes(ordenado);
         }
+        // Com N = leiturasPorPeriodo: atual = últimas N leituras; anterior = as N imediatamente antes.
+        // Leituras mais antigas que isso são ignoradas.
         int fim = ordenado.size();
         double mediaAtual = media(ordenado.subList(fim - leiturasPorPeriodo, fim));
         double mediaAnterior = media(ordenado.subList(fim - 2 * leiturasPorPeriodo, fim - leiturasPorPeriodo));
         double variacao = mediaAtual - mediaAnterior;
         TipoSensor tipo = ordenado.get(0).tipo();
+        // Projeta a mesma variação para frente e corta valores fisicamente impossíveis (ex.: chuva negativa).
         double previsto = tipo.limitarAFaixa(mediaAtual + variacao);
 
         String interpretacao = "Período atual (" + leiturasPorPeriodo + " leituras): " + tipo.formatar(mediaAtual)
@@ -49,6 +53,7 @@ public class PrevisaoComparacao extends EstrategiaPrevisao {
             return "estável";
         }
         String sentido = variacao > 0 ? "alta" : "queda";
+        // Sem base (média anterior zero) não dá para calcular percentual; mostra a variação absoluta.
         if (mediaAnterior == 0) {
             return sentido + " de " + tipo.formatar(Math.abs(variacao));
         }

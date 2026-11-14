@@ -18,6 +18,8 @@ import java.util.Optional;
 public record Alerta(Long id, String sensorId, TipoSensor tipo, NivelAlerta nivel, double valorPrevisto,
                      double limiteUltrapassado, String estrategia, LocalDateTime dataHora) {
 
+    // Construtor compacto: toda criação de Alerta (avaliar, comId, leitura do banco) passa por aqui,
+    // então não existe alerta incoerente em memória.
     public Alerta {
         if (id != null && id <= 0) {
             throw new DadosInvalidosException("O id do alerta deve ser positivo; recebido: " + id + ".");
@@ -31,6 +33,7 @@ public record Alerta(Long id, String sensorId, TipoSensor tipo, NivelAlerta nive
             throw new DadosInvalidosException("O alerta do sensor " + sensorId
                     + " tem valor previsto ou limite não numérico.");
         }
+        // Um alerta só faz sentido se a previsão de fato chegou ao limite registrado.
         if (valorPrevisto < limiteUltrapassado) {
             throw new DadosInvalidosException("Alerta incoerente para " + sensorId + ": a previsão ("
                     + tipo.formatar(valorPrevisto) + ") não atinge o limite (" + tipo.formatar(limiteUltrapassado)
@@ -42,7 +45,8 @@ public record Alerta(Long id, String sensorId, TipoSensor tipo, NivelAlerta nive
             throw new DadosInvalidosException("Alerta incoerente para " + sensorId + ": o limite de "
                     + tipo.formatar(limiteUltrapassado) + " é baixo demais para o nível " + nivel.getRotulo() + ".");
         }
-        // O nível registrado precisa ser o mais grave atingido.
+        // O nível registrado precisa ser o mais grave atingido: se a previsão já passa do limite
+        // do próximo nível, o alerta foi classificado abaixo do que deveria.
         Optional<NivelAlerta> proximo = nivel.proximoNivel();
         double limiteDoProximo = limiteUltrapassado + tipo.getDegrauEntreNiveis();
         if (proximo.isPresent() && valorPrevisto >= limiteDoProximo + TOLERANCIA) {
@@ -75,6 +79,7 @@ public record Alerta(Long id, String sensorId, TipoSensor tipo, NivelAlerta nive
         double valor = previsao.valorPrevisto().getAsDouble();
         TipoSensor tipo = previsao.tipo();
         double limiar = territorio.getLimiar(tipo);
+        // Abaixo do limiar, classificar devolve vazio e nenhum alerta é criado.
         return NivelAlerta.classificar(valor, limiar, tipo)
                 .map(nivel -> new Alerta(null, previsao.sensorId(), tipo, nivel, valor,
                         nivel.limite(limiar, tipo), previsao.estrategia(), dataHora));

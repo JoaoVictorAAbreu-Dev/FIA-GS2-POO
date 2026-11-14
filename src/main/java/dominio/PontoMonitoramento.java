@@ -24,6 +24,7 @@ public class PontoMonitoramento extends ComponenteTerritorial {
         if (sensor == null) {
             throw new DadosInvalidosException("Informe o sensor a ser instalado no ponto " + getId() + ".");
         }
+        // Ids repetidos no mesmo ponto tornariam ambíguas as leituras e o histórico.
         boolean idRepetido = sensores.stream().anyMatch(s -> s.getId().equals(sensor.getId()));
         if (idRepetido) {
             throw new DadosInvalidosException("O ponto " + getId() + " já possui um sensor com id "
@@ -36,6 +37,7 @@ public class PontoMonitoramento extends ComponenteTerritorial {
     public StatusComponente verificarStatus() {
         long funcionando = sensores.stream().filter(Sensor::estaFuncionando).count();
         StatusComponente novo;
+        // funcionando == 0 cobre também o ponto sem nenhum sensor instalado.
         if (funcionando == 0) {
             novo = StatusComponente.INDISPONIVEL;
         } else if (funcionando < sensores.size()) {
@@ -57,6 +59,7 @@ public class PontoMonitoramento extends ComponenteTerritorial {
         return verificarStatus();
     }
 
+    /** Visão somente leitura: sensores só entram pelo {@link #adicionarSensor}, que valida. */
     public List<Sensor> getSensores() {
         return Collections.unmodifiableList(sensores);
     }

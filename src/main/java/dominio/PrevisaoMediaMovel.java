@@ -27,6 +27,7 @@ public class PrevisaoMediaMovel extends EstrategiaPrevisao {
         if (!temLeiturasSuficientes(ordenado)) {
             return dadosInsuficientes(ordenado);
         }
+        // Como o histórico está em ordem cronológica, as últimas N posições são as leituras mais recentes.
         List<Medicao> recentes = ordenado.subList(ordenado.size() - janela, ordenado.size());
         double previsto = media(recentes);
         TipoSensor tipo = recentes.get(0).tipo();

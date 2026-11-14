@@ -19,9 +19,9 @@ public enum NivelAlerta {
     CRITICO("CRÍTICO", 2,
             "Acionar o plano de contingência e avisar a população da região e o órgão responsável.");
 
-    private final String rotulo;
-    private final int ordem;
-    private final String orientacao;
+    private final String rotulo;      // texto exibido ao usuário (com acento)
+    private final int ordem;          // multiplicador do degrau no cálculo do limite
+    private final String orientacao;  // ação recomendada quando o nível é atingido
 
     NivelAlerta(String rotulo, int ordem, String orientacao) {
         this.rotulo = rotulo;
@@ -43,6 +43,7 @@ public enum NivelAlerta {
     public static Optional<NivelAlerta> classificar(double valorPrevisto, double limiar, TipoSensor tipo) {
         tipo.validarLimiar(limiar);
         NivelAlerta[] niveis = values();
+        // Percorre do mais grave para o mais leve: o primeiro limite atingido é o nível certo.
         for (int i = niveis.length - 1; i >= 0; i--) {
             if (valorPrevisto >= niveis[i].limite(limiar, tipo)) {
                 return Optional.of(niveis[i]);
@@ -54,6 +55,7 @@ public enum NivelAlerta {
     /** Nível imediatamente mais grave, ou vazio se este já é o mais grave. */
     public Optional<NivelAlerta> proximoNivel() {
         NivelAlerta[] niveis = values();
+        // Depende da ordem de declaração das constantes (do mais leve ao mais grave).
         return ordinal() + 1 < niveis.length ? Optional.of(niveis[ordinal() + 1]) : Optional.empty();
     }
 

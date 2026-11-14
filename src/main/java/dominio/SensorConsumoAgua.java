@@ -15,17 +15,21 @@ public class SensorConsumoAgua extends SensorSimulado {
     private static final double PICO_MINIMO = 40.0;
     private static final double VARIACAO_PICO = 60.0;
 
+    /** Uso normal: leituras aleatórias a cada execução. */
     public SensorConsumoAgua(String id, String nome, String regiao) {
         this(id, nome, regiao, new Random());
     }
 
+    /** Para testes: com {@code new Random(semente)} as leituras se repetem. */
     public SensorConsumoAgua(String id, String nome, String regiao, Random random) {
         super(id, nome, regiao, TipoSensor.CONSUMO_AGUA, random);
     }
 
     @Override
     protected double simularLeitura(Random random) {
+        // nextDouble() está em [0, 1), então o consumo base fica entre 70 e 130 m³/h.
         double consumo = CONSUMO_MINIMO + random.nextDouble() * VARIACAO_CONSUMO;
+        // Sorteio de 10%: soma um pico de 40 a 100 m³/h (vazamento ou uso fora do normal).
         if (random.nextDouble() < CHANCE_DE_PICO) {
             consumo += PICO_MINIMO + random.nextDouble() * VARIACAO_PICO;
         }

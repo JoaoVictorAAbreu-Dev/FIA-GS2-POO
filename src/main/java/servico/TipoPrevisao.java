@@ -18,6 +18,7 @@ public enum TipoPrevisao {
 
     /** @throws DadosInvalidosException se o código não corresponder a nenhuma estratégia */
     public static TipoPrevisao deCodigo(String codigo) {
+        // Aceita espaços nas pontas e maiúsculas/minúsculas ("  Media-Movel " funciona).
         String procurado = codigo == null ? "" : codigo.strip();
         return Arrays.stream(values())
                 .filter(tipo -> tipo.codigo.equalsIgnoreCase(procurado))

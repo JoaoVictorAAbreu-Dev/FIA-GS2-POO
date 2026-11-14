@@ -10,12 +10,15 @@ public abstract class ComponenteTerritorial {
     private final String id;
     private final String nome;
     private final String regiao;
+    // Único campo mutável: guarda o resultado da última verificação.
     private StatusComponente status;
 
     protected ComponenteTerritorial(String id, String nome, String regiao) {
+        // exigirTexto rejeita nulo/vazio e já devolve o texto sem espaços nas pontas.
         this.id = Validacoes.exigirTexto(id, "id");
         this.nome = Validacoes.exigirTexto(nome, "nome");
         this.regiao = Validacoes.exigirTexto(regiao, "região");
+        // Todo componente nasce operacional; as subclasses ajustam ao verificar.
         this.status = StatusComponente.OPERACIONAL;
     }
 

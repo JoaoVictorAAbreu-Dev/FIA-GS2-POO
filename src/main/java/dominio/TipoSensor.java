@@ -23,11 +23,11 @@ public enum TipoSensor {
     /** Vazão consumida por um setor de abastecimento. Degrau de 30 m³/h: limiar 120 → 120, 150, 180. */
     CONSUMO_AGUA("consumo de água", "m³/h", 0.0, 1000.0, 30.0);
 
-    private final String descricao;
-    private final String unidade;
-    private final double minimoFisico;
-    private final double maximoFisico;
-    private final double degrauEntreNiveis;
+    private final String descricao;          // nome usado nas mensagens ("chuva")
+    private final String unidade;            // unidade exibida após o valor ("mm/h")
+    private final double minimoFisico;       // menor valor plausível; abaixo disso é defeito
+    private final double maximoFisico;       // maior valor plausível; acima disso é defeito
+    private final double degrauEntreNiveis;  // distância entre ATENÇÃO, ALERTA e CRÍTICO
 
     TipoSensor(String descricao, String unidade, double minimoFisico, double maximoFisico,
                double degrauEntreNiveis) {
@@ -49,6 +49,7 @@ public enum TipoSensor {
                     "Medição de " + descricao + " inválida: o valor precisa ser um número finito; recebido: "
                             + Formatos.numero(valor) + ".");
         }
+        // Mensagem mais clara para grandezas que não podem ser negativas (chuva, consumo).
         if (valor < 0 && minimoFisico == 0) {
             throw new DadosInvalidosException(
                     "Medição de " + descricao + " negativa: " + formatar(valor) + ".");

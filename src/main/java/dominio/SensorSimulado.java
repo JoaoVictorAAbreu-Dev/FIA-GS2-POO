@@ -26,8 +26,8 @@ public abstract class SensorSimulado extends ComponenteTerritorial implements Se
 
     private final TipoSensor tipo;
     private final Random random;
-    private boolean funcionando = true;
-    private boolean descalibrado = false;
+    private boolean funcionando = true;   // false = não responde (simularFalha)
+    private boolean descalibrado = false; // true = responde com valor impossível (simularDefeitoDeCalibracao)
 
     /**
      * @param random gerador de números; injete um {@code new Random(semente)} nos
@@ -59,6 +59,7 @@ public abstract class SensorSimulado extends ComponenteTerritorial implements Se
             throw new FonteIndisponivelException(getId(), "Sensor " + getId() + " (" + tipo.getDescricao()
                     + ", " + getRegiao() + ") não respondeu: está fora de operação.");
         }
+        // Valor propositalmente fora da faixa; não é validado aqui para que a Medicao o rejeite.
         if (descalibrado) {
             return tipo.getMinimoFisico() - tipo.getDegrauEntreNiveis();
         }
@@ -91,7 +92,7 @@ public abstract class SensorSimulado extends ComponenteTerritorial implements Se
     /** Simula pane (falta de energia, cabo rompido...). Próximas leituras falham. */
     public void simularFalha() {
         funcionando = false;
-        verificarStatus();
+        verificarStatus(); // mantém o status coerente com o novo estado
     }
 
     /**

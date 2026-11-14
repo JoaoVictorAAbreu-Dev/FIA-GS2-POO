@@ -43,14 +43,18 @@ public final class ConfiguracaoSistema {
     private volatile int leiturasPorPeriodoComparacao;
     private volatile TipoPrevisao tipoPrevisaoPadrao;
 
+    // Privado: ninguém fora da classe cria outra instância.
     private ConfiguracaoSistema() {
         restaurarPadroes();
     }
 
+    // Idiom "holder": a JVM só carrega Holder na primeira chamada a getInstancia(), e o
+    // carregamento de classe já é thread-safe, então não precisa de synchronized.
     private static final class Holder {
         private static final ConfiguracaoSistema INSTANCIA = new ConfiguracaoSistema();
     }
 
+    /** Ponto único de acesso à configuração. */
     public static ConfiguracaoSistema getInstancia() {
         return Holder.INSTANCIA;
     }

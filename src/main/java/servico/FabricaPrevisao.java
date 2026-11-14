@@ -24,6 +24,7 @@ import java.util.function.Function;
 public class FabricaPrevisao {
 
     private final ConfiguracaoSistema configuracao;
+    // Tipo de previsão -> função que recebe a configuração e devolve a estratégia pronta.
     private final Map<TipoPrevisao, Function<ConfiguracaoSistema, EstrategiaPrevisao>> criadores =
             new EnumMap<>(TipoPrevisao.class);
 
@@ -32,12 +33,15 @@ public class FabricaPrevisao {
         this(ConfiguracaoSistema.getInstancia());
     }
 
+    /** Recebe a configuração por parâmetro para que os testes possam injetar a sua. */
     public FabricaPrevisao(ConfiguracaoSistema configuracao) {
         if (configuracao == null) {
             throw new DadosInvalidosException("A fábrica de previsões precisa da configuração do sistema.");
         }
         this.configuracao = configuracao;
         registrarCriadores();
+        // Falha já na criação se alguém adicionar um TipoPrevisao e esquecer de registrá-lo,
+        // em vez de estourar NullPointerException só quando essa estratégia for pedida.
         for (TipoPrevisao tipo : TipoPrevisao.values()) {
             if (!criadores.containsKey(tipo)) {
                 throw new IllegalStateException("Estratégia sem criador registrado na fábrica: " + tipo);
@@ -45,6 +49,8 @@ public class FabricaPrevisao {
         }
     }
 
+    // Os parâmetros são lidos da configuração no momento de criar, então mudanças feitas
+    // no menu valem para as próximas estratégias criadas.
     private void registrarCriadores() {
         criadores.put(TipoPrevisao.MEDIA_MOVEL,
                 config -> new PrevisaoMediaMovel(config.getJanelaMediaMovel()));

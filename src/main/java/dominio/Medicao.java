@@ -22,6 +22,7 @@ import java.time.LocalDateTime;
  */
 public record Medicao(Long id, String sensorId, TipoSensor tipo, double valor, LocalDateTime dataHora) {
 
+    // Construtor compacto: valida os campos antes de o record ser criado.
     public Medicao {
         if (id != null && id <= 0) {
             throw new DadosInvalidosException("O id da medição deve ser positivo; recebido: " + id + ".");
@@ -35,7 +36,9 @@ public record Medicao(Long id, String sensorId, TipoSensor tipo, double valor, L
         if (dataHora == null) {
             throw new DadosInvalidosException("A medição do sensor " + sensorId + " precisa informar data e hora.");
         }
+        // A faixa física válida depende da grandeza, por isso a regra fica em TipoSensor.
         tipo.validarValor(valor);
+        // Normaliza o id (" PLU-01 " vira "PLU-01") antes de atribuir ao campo.
         sensorId = sensorId.strip();
     }
 
