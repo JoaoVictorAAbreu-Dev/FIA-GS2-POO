@@ -29,6 +29,9 @@ public final class ConfiguracaoSistema {
     public static final int LEITURAS_POR_PERIODO_PADRAO = 3;
     public static final TipoPrevisao TIPO_PREVISAO_PADRAO = TipoPrevisao.MEDIA_MOVEL;
 
+    private static final int JANELA_MINIMA = 2;
+    private static final int LEITURAS_POR_PERIODO_MINIMAS = 1;
+
     private static final Map<TipoSensor, Double> LIMIARES_PADRAO;
 
     static {
@@ -85,8 +88,9 @@ public final class ConfiguracaoSistema {
 
     /** @throws DadosInvalidosException se a janela for menor que 2 */
     public void definirJanelaMediaMovel(int janela) {
-        if (janela < 2) {
-            throw new DadosInvalidosException("A janela da média móvel deve ter pelo menos 2 leituras; "
+        if (janela < JANELA_MINIMA) {
+            throw new DadosInvalidosException("A janela da média móvel deve ter pelo menos " + JANELA_MINIMA
+                    + " leituras; "
                     + "valor recebido: " + janela);
         }
         this.janelaMediaMovel = janela;
@@ -98,8 +102,9 @@ public final class ConfiguracaoSistema {
 
     /** @throws DadosInvalidosException se o período for menor que 1 */
     public void definirLeiturasPorPeriodoComparacao(int leituras) {
-        if (leituras < 1) {
-            throw new DadosInvalidosException("Cada período da comparação deve ter pelo menos 1 leitura; "
+        if (leituras < LEITURAS_POR_PERIODO_MINIMAS) {
+            throw new DadosInvalidosException("Cada período da comparação deve ter pelo menos "
+                    + LEITURAS_POR_PERIODO_MINIMAS + " leitura; "
                     + "valor recebido: " + leituras);
         }
         this.leiturasPorPeriodoComparacao = leituras;

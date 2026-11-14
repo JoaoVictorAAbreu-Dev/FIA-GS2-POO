@@ -18,6 +18,9 @@ import java.util.Optional;
 public record Alerta(Long id, String sensorId, TipoSensor tipo, NivelAlerta nivel, double valorPrevisto,
                      double limiteUltrapassado, String estrategia, LocalDateTime dataHora) {
 
+    /** Margem para erros de arredondamento de ponto flutuante ao recalcular limites. */
+    private static final double TOLERANCIA = 1e-9;
+
     // Construtor compacto: toda criação de Alerta (avaliar, comId, leitura do banco) passa por aqui,
     // então não existe alerta incoerente em memória.
     public Alerta {
@@ -56,9 +59,6 @@ public record Alerta(Long id, String sensorId, TipoSensor tipo, NivelAlerta nive
         }
         sensorId = sensorId.strip();
     }
-
-    /** Margem para erros de arredondamento de ponto flutuante ao recalcular limites. */
-    private static final double TOLERANCIA = 1e-9;
 
     /**
      * Compara a previsão com o limiar do território <b>para o tipo da própria
