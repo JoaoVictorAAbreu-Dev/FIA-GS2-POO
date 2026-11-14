@@ -127,6 +127,63 @@ class SensorTest {
     }
 
     @Test
+    void defeitoDeCalibracaoGeraLeituraQueAValidacaoRejeita() {
+        // Arrange
+        SensorPluviometro sensor = new SensorPluviometro("PLU-05", "Pluviômetro Praça", "Zona Sul", new Random(7));
+
+        // Act
+        sensor.simularDefeitoDeCalibracao();
+        excecao.DadosInvalidosException erro = assertThrows(excecao.DadosInvalidosException.class,
+                () -> sensor.lerMedicao(AGORA));
+
+        // Assert: responde (não é falha de fonte), mas com valor impossível
+        assertEquals("Medição de chuva negativa: -15,0 mm/h.", erro.getMessage());
+        assertTrue(sensor.estaFuncionando());
+        assertEquals(StatusComponente.DEGRADADO, sensor.getStatus());
+    }
+
+    @Test
+    void restabelecerCorrigeDefeitoDeCalibracao() throws FonteIndisponivelException {
+        // Arrange
+        SensorConsumoAgua sensor = new SensorConsumoAgua("AGU-05", "Macromedidor", "Zona Sul", new Random(8));
+        sensor.simularDefeitoDeCalibracao();
+
+        // Act
+        sensor.restabelecer();
+        Medicao medicao = sensor.lerMedicao(AGORA);
+
+        // Assert
+        assertFalse(sensor.estaDescalibrado());
+        assertEquals(StatusComponente.OPERACIONAL, sensor.getStatus());
+        assertTrue(medicao.valor() >= 0);
+    }
+
+    @Test
+    void falhaTemPrioridadeSobreDefeito() {
+        // Arrange
+        SensorTemperatura sensor = new SensorTemperatura("TMP-05", "Termômetro", "Zona Sul");
+        sensor.simularDefeitoDeCalibracao();
+
+        // Act
+        sensor.simularFalha();
+
+        // Assert: sem resposta é mais grave que resposta errada
+        assertThrows(FonteIndisponivelException.class, sensor::lerValor);
+        assertEquals(StatusComponente.INDISPONIVEL, sensor.getStatus());
+    }
+
+    @Test
+    void entradasNulasLancamDadosInvalidos() {
+        // Arrange
+        PontoMonitoramento ponto = new PontoMonitoramento("PT-05", "Estação", "Zona Sul");
+
+        // Act / Assert
+        assertThrows(excecao.DadosInvalidosException.class, () -> ponto.adicionarSensor(null));
+        assertThrows(excecao.DadosInvalidosException.class,
+                () -> new SensorTemperatura("TMP-06", "Termômetro", "Zona Sul", null));
+    }
+
+    @Test
     void pontoRejeitaSensorComIdRepetido() {
         // Arrange
         PontoMonitoramento ponto = new PontoMonitoramento("PT-01", "Estação", "Zona Leste");
