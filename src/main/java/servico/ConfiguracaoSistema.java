@@ -6,7 +6,6 @@ import excecao.DadosInvalidosException;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Configuração única do sistema (Singleton): limiares padrão e parâmetros das
@@ -65,7 +64,10 @@ public final class ConfiguracaoSistema {
 
     /** Limiar de ATENÇÃO padrão de um tipo de sensor. */
     public double getLimiarPadrao(TipoSensor tipo) {
-        return LIMIARES_PADRAO.get(Objects.requireNonNull(tipo, "tipo"));
+        if (tipo == null) {
+            throw new DadosInvalidosException("Informe o tipo de sensor para consultar o limiar padrão.");
+        }
+        return LIMIARES_PADRAO.get(tipo);
     }
 
     /** Todos os limiares padrão (somente leitura), prontos para criar um DadosTerritorio. */

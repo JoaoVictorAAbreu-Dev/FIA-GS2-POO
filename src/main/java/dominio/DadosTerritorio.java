@@ -7,7 +7,6 @@ import java.security.MessageDigest;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Dados do território monitorado e seus limiares de risco.
@@ -81,7 +80,10 @@ public class DadosTerritorio {
 
     /** Limiar de ATENÇÃO atual do tipo informado. */
     public double getLimiar(TipoSensor tipo) {
-        return limiares.get(Objects.requireNonNull(tipo, "tipo"));
+        if (tipo == null) {
+            throw new DadosInvalidosException("Informe o tipo de sensor para consultar o limiar.");
+        }
+        return limiares.get(tipo);
     }
 
     /** Cópia somente leitura dos limiares atuais. */

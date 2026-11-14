@@ -65,6 +65,12 @@ class FabricaPrevisaoTest {
     }
 
     @Test
+    void exigeConfiguracao() {
+        // Act / Assert
+        assertThrows(DadosInvalidosException.class, () -> new FabricaPrevisao(null));
+    }
+
+    @Test
     void codigoDesconhecidoLancaDadosInvalidosComAsOpcoes() {
         // Act
         DadosInvalidosException erro = assertThrows(DadosInvalidosException.class,

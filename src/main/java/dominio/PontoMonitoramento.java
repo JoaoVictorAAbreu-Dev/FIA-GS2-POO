@@ -5,7 +5,6 @@ import excecao.DadosInvalidosException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Local físico do território (ex.: "Estação Córrego Aricanduva") que agrupa
@@ -22,7 +21,9 @@ public class PontoMonitoramento extends ComponenteTerritorial {
 
     /** @throws DadosInvalidosException se já houver sensor com o mesmo id */
     public void adicionarSensor(Sensor sensor) {
-        Objects.requireNonNull(sensor, "sensor");
+        if (sensor == null) {
+            throw new DadosInvalidosException("Informe o sensor a ser instalado no ponto " + getId() + ".");
+        }
         boolean idRepetido = sensores.stream().anyMatch(s -> s.getId().equals(sensor.getId()));
         if (idRepetido) {
             throw new DadosInvalidosException("O ponto " + getId() + " já possui um sensor com id "

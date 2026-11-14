@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Function;
 
 /**
@@ -34,7 +33,10 @@ public class FabricaPrevisao {
     }
 
     public FabricaPrevisao(ConfiguracaoSistema configuracao) {
-        this.configuracao = Objects.requireNonNull(configuracao, "configuracao");
+        if (configuracao == null) {
+            throw new DadosInvalidosException("A fábrica de previsões precisa da configuração do sistema.");
+        }
+        this.configuracao = configuracao;
         registrarCriadores();
         for (TipoPrevisao tipo : TipoPrevisao.values()) {
             if (!criadores.containsKey(tipo)) {

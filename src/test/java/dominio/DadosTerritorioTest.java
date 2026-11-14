@@ -92,6 +92,14 @@ class DadosTerritorioTest {
     }
 
     @Test
+    void consultarLimiarSemTipoLancaDadosInvalidos() {
+        // Act / Assert
+        assertThrows(DadosInvalidosException.class, () -> territorio.getLimiar(null));
+        assertThrows(DadosInvalidosException.class,
+                () -> servico.ConfiguracaoSistema.getInstancia().getLimiarPadrao(null));
+    }
+
+    @Test
     void limiaresExpostosSaoSomenteLeitura() {
         // Act / Assert
         assertThrows(UnsupportedOperationException.class,
