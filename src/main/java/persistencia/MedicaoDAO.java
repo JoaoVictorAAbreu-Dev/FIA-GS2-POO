@@ -7,13 +7,12 @@ import dominio.Medicao;
 import dominio.TipoSensor;
 import excecao.DadosInvalidosException;
 import excecao.FonteIndisponivelException;
-import org.h2.store.fs.retry.FilePathRetryOnInterrupt;
 
 public class MedicaoDAO extends BaseDAO {
 
-    private static final String SQL_INSERIR = "INSERT INTO medicao(sensorId, tipo, valor, dataHora VALUES (?, ?, ?, ?)";
-    private static final String SQL_HISTORICO = "SELECT id, sensorId, tipo, valor, dataHora WHERE sensorId = ? ORDER BY dataHora, id";
-    private static final String SQL_ULTIMAS = "SELECT id, sensorId, tipo, valor, dataHora WHERE sensorId = ? ORDER BY dataHora DESC, id DESC LIMIT ?";
+    private static final String SQL_INSERIR = "INSERT INTO medicao(sensorId, tipo, valor, dataHora) VALUES (?, ?, ?, ?)";
+    private static final String SQL_HISTORICO = "SELECT id, sensorId, tipo, valor, dataHora FROM meicao WHERE sensorId = ? ORDER BY dataHora, id";
+    private static final String SQL_ULTIMAS = "SELECT id, sensorId, tipo, valor, dataHora FROM medicao WHERE sensorId = ? ORDER BY dataHora DESC, id DESC LIMIT ?";
 
     public MedicaoDAO(FabricaConexao fabricaConexao) {
         super(fabricaConexao);
@@ -27,10 +26,10 @@ public class MedicaoDAO extends BaseDAO {
      */
     public Medicao inserir(Medicao medicao) throws FonteIndisponivelException {
         if (medicao == null) {
-            throw new DadosInvalidosException("Informe a medicao a ser gravado.");
+            throw new DadosInvalidosException("Informe a medicao a ser gravada.");
         }
         if (medicao.id() != null) {
-            throw new DadosInvalidosException("A medicao " + medicao.id() + " já está gravado no banco.");
+            throw new DadosInvalidosException("A medição " + medicao.id() + " já está gravada no banco.");
         }
 
         Long idGerado = executarUpdate(SQL_INSERIR, stmt -> {

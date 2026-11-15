@@ -44,7 +44,7 @@ public abstract class BaseDAO {
                 } throw new FonteIndisponivelException(FabricaConexao.ID_FONTE, "O banco gravou o registro, mas não devolveu o id gerado.");
             }
         } catch (SQLException e) {
-            throw falhaNoBanco("consultar ", e);
+            throw falhaNoBanco("Gravar ", e);
         }
     }
 
