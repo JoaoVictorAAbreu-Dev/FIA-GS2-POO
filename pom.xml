@@ -15,9 +15,16 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.version>5.12.2</junit.version>
         <mockito.version>5.23.0</mockito.version>
+        <h2.version>2.3.232</h2.version>
     </properties>
 
     <dependencies>
+        <!-- H2: banco embutido usado pelos DAOs (JDBC). Grava em arquivo na pasta dados/ -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>${h2.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -44,6 +51,15 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.3</version>
+            </plugin>
+            <!-- Permite rodar o menu com: mvn compile exec:java -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <configuration>
+                    <mainClass>SistemaMonitoramento</mainClass>
+                </configuration>
             </plugin>
         </plugins>
     </build>
