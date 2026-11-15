@@ -23,7 +23,7 @@ O banco é o **H2 em arquivo**, criado automaticamente em `./dados/territorio.mv
 
 **Código de acesso da coordenação** (menu 5, alterar limiares e população): `coord2026`.
 
-Roteiro rápido de demonstração: opção 1 com 6 rodadas → opção 2 (previsões e alertas) → opções 3 e 4 (histórico) → feche e abra o programa de novo e repita a opção 3 para ver os dados persistidos. A opção 7 simula falha ou defeito de calibração de um sensor.
+Roteiro rápido de demonstração: opção 1 com 6 rodadas → opção 2 (previsões e alertas) → opções 3 e 4 (histórico) → feche e abra o programa de novo e repita a opção 3 para ver os dados persistidos. A opção 7 simula falha ou defeito de calibração de um sensor. A opção 8 roda a [simulação de 24 horas](#bônus-simulação-de-24-horas).
 
 ## Estrutura
 
@@ -36,7 +36,8 @@ src/main/java/
 ├── excecao/       DadosInvalidosException, FonteIndisponivelException
 ├── persistencia/  FabricaConexao, BaseDAO, MedicaoDAO, AlertaDAO
 ├── servico/       ConfiguracaoSistema, FabricaPrevisao, TipoPrevisao,
-│                  ServicoMonitoramento, AvaliacaoPrevisao
+│                  ServicoMonitoramento, AvaliacaoPrevisao,
+│                  Simulacao24Horas, HoraSimulada   (bônus)
 └── SistemaMonitoramento.java   (menu principal)
 src/main/resources/schema.sql   (tabelas medicao e alerta)
 src/test/java/
@@ -44,7 +45,8 @@ src/test/java/
 │                  PrevisaoComparacaoTest, AlertaTest, FormatosTest
 ├── persistencia/  MedicaoDAOTest, AlertaDAOTest   (H2 real em pasta temporária)
 └── servico/       ConfiguracaoSistemaTest, FabricaPrevisaoTest,
-                   ServicoMonitoramentoTest        (DAOs mockados com Mockito)
+                   ServicoMonitoramentoTest        (DAOs mockados com Mockito),
+                   Simulacao24HorasTest
 ```
 
 Os pacotes seguem a estrutura sugerida no enunciado (`dominio`, `excecao`, `persistencia`, `servico`).
@@ -133,16 +135,31 @@ Restringir as implementações de `Sensor` não protege nenhuma regra (ninguém 
 
 Fica entre o menu e o banco: `registrarLeitura(sensor)` lê e grava (leitura inválida ou sensor em falha não gravam nada); `preverEAvaliar(sensorId, tipo)` pede a estratégia à `FabricaPrevisao`, busca o histórico no banco, prevê, chama `Alerta.avaliar` e grava o alerta, se houver. Recebe os DAOs pelo construtor, o que permite testá-lo com Mockito sem banco, e um relógio injetável para os testes terem horário fixo.
 
+## Bônus: simulação de 24 horas
+
+Opção **8** do menu. Simula um dia inteiro, com uma leitura de cada sensor por hora, e mostra os alertas aparecendo ao longo do tempo:
+
+| Sensor | Cenário do dia |
+|---|---|
+| `PLU-01` chuva | seco até 8h, chuva forte à tarde com pico de 80 mm/h às 14h, para às 20h |
+| `TMP-01` temperatura | 20 °C de madrugada, 40 °C às 15h |
+| `AGU-01` consumo de água | consumo normal de dia; vazamento a partir das 19h (até 180 m³/h) |
+
+- **Mesmo fluxo do sistema real:** cada hora passa por `ServicoMonitoramento` (ler → gravar → buscar histórico → prever → alertar), com a `FabricaPrevisao` e os limiares atuais do território. O relógio do serviço é injetado e avança uma hora por passo.
+- **Banco separado:** roda num H2 **em memória**, criado só para a simulação e descartado no fim. O histórico real não é misturado com um dia inventado, e duas simulações seguidas não interferem uma na outra.
+- **Reproduzível:** os valores vêm de `SensorRoteirizado`, uma quarta implementação de `Sensor` que devolve leituras definidas de antemão. As leituras continuam passando pela validação de `Medicao`.
+- **O que ela mostra:** com a média móvel, a chuva gera ATENÇÃO às 13h, ALERTA às 14h e CRÍTICO só às 16h, duas horas depois do pico. Com a comparação entre períodos, o primeiro aviso vem às 11h e o CRÍTICO às 13h. `Simulacao24HorasTest` confere esses horários, calculados à mão.
+
 ## Testes
 
-86 testes JUnit 5 no padrão **AAA**, em 12 classes, com vários `assertThrows` das exceções customizadas. Os valores esperados são calculados à mão nos próprios testes (ex.: média de 10..50 = 30; comparação 20 → 40 projeta 60), então um erro de cálculo deixa o teste vermelho. Sensores usam `Random` com semente fixa para serem reproduzíveis.
+91 testes JUnit 5 no padrão **AAA**, em 13 classes, com vários `assertThrows` das exceções customizadas. Os valores esperados são calculados à mão nos próprios testes (ex.: média de 10..50 = 30; comparação 20 → 40 projeta 60), então um erro de cálculo deixa o teste vermelho. Sensores usam `Random` com semente fixa para serem reproduzíveis.
 
 - **Mockito:** `ServicoMonitoramentoTest` mocka `MedicaoDAO` e `AlertaDAO` e verifica a lógica de alerta sem banco: previsão CRÍTICA grava o alerta certo (`ArgumentCaptor`), previsão abaixo do limiar ou histórico insuficiente **não** grava alerta (`never()`), leitura impossível ou sensor em falha não grava medição (`verifyNoInteractions`).
 - **DAOs:** `MedicaoDAOTest` e `AlertaDAOTest` usam um H2 de verdade em pasta temporária: id gerado, ordem do histórico, últimas N leituras, dados que sobrevivem ao reabrir o banco, registro corrompido e banco inacessível.
 
 ## Reflexão crítica
 
-**Quando o sistema deve se calar?** Quando o histórico do sensor tem menos leituras que o mínimo da estratégia: menos de 5 para a média móvel e menos de 6 para a comparação, nos valores padrão. Nesses casos o código não devolve uma previsão "chutada": `ResultadoPrevisao` vem sem valor, a interpretação diz quantas leituras faltam e `Alerta.avaliar` não emite alerta. Também se cala quando o sensor está em falha (`FonteIndisponivelException`): nenhuma medição é inventada para cobrir o buraco. Mesmo com dados suficientes, a comparação entre períodos exagera picos isolados. Uma única leitura alta pode gerar um CRÍTICO. Por isso o alerta informa qual estratégia o gerou.
+**Quando o sistema deve se calar?** Quando o histórico do sensor tem menos leituras que o mínimo da estratégia: menos de 5 para a média móvel e menos de 6 para a comparação, nos valores padrão. Nesses casos o código não devolve uma previsão "chutada": `ResultadoPrevisao` vem sem valor, a interpretação diz quantas leituras faltam e `Alerta.avaliar` não emite alerta. Também se cala quando o sensor está em falha (`FonteIndisponivelException`): nenhuma medição é inventada para cobrir o buraco. Mesmo com dados suficientes, a comparação entre períodos exagera picos isolados. Uma única leitura alta pode gerar um CRÍTICO. Por isso o alerta informa qual estratégia o gerou. A simulação de 24 horas mostra o outro lado: a média móvel é estável, mas só dá o CRÍTICO de chuva duas horas depois do pico. Nenhuma estratégia é melhor em tudo, e a escolha cabe à coordenação.
 
 **O que os dados não representam?** Um sensor descreve um ponto, não a região inteira. Um pluviômetro pode registrar 0 mm/h enquanto chove forte a dois quilômetros. As leituras são **simuladas** com distribuições escolhidas por nós, não medidas reais. Os limiares (35 °C, 30 mm/h, 120 m³/h) e os degraus entre níveis são parâmetros de exemplo, não normas da Defesa Civil ou da concessionária. O sistema também não sabe quem está exposto ao risco: `DadosTerritorio` guarda só uma população estimada da região. Por exigência do enunciado, não há dados de pessoas.
 
@@ -165,4 +182,4 @@ Fica entre o menu e o banco: `registrarLeitura(sensor)` lê e grava (leitura inv
 - [x] Menu `SistemaMonitoramento` com `Scanner`, capturando `DadosInvalidosException` e `FonteIndisponivelException` com mensagens claras
 - [x] Teste com Mockito do DAO
 - [ ] Recorte escolhido, público, uso de IA e divisão de tarefas preenchidos neste README
-- [ ] Bônus (opcional, apenas um): CSV, simulação de 24 h ou dados do INMET
+- [x] Bônus: simulação de 24 horas (opção 8 do menu)

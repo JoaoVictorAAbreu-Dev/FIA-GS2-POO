@@ -17,12 +17,17 @@ import persistencia.MedicaoDAO;
 import servico.AvaliacaoPrevisao;
 import servico.ConfiguracaoSistema;
 import servico.FabricaPrevisao;
+import servico.HoraSimulada;
 import servico.ServicoMonitoramento;
+import servico.Simulacao24Horas;
 import servico.TipoPrevisao;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 /**
@@ -98,6 +103,7 @@ public class SistemaMonitoramento {
         System.out.println("5. Gerenciar dados do território");
         System.out.println("6. Status completo");
         System.out.println("7. Simular problema em um sensor");
+        System.out.println("8. Simulação de 24 horas (alertas ao longo de um dia)");
         System.out.println("0. Sair");
     }
 
@@ -111,10 +117,11 @@ public class SistemaMonitoramento {
             case 5 -> gerenciarTerritorio();
             case 6 -> mostrarStatusCompleto();
             case 7 -> simularProblema();
+            case 8 -> simular24Horas();
             case 0 -> {
                 return false;
             }
-            default -> System.out.println("Opção inválida. Digite um número de 0 a 7.");
+            default -> System.out.println("Opção inválida. Digite um número de 0 a 8.");
         }
         return true;
     }
@@ -283,6 +290,38 @@ public class SistemaMonitoramento {
         System.out.println("Previsões: janela " + configuracao.getJanelaMediaMovel() + ", período "
                 + configuracao.getLeiturasPorPeriodoComparacao() + ", padrão "
                 + configuracao.getTipoPrevisaoPadrao().getCodigo());
+    }
+
+    // ---------- 8. Simulação de 24 horas (bônus) ----------
+
+    private void simular24Horas() throws FonteIndisponivelException {
+        System.out.println("Dia simulado: chuva forte à tarde, calor ao meio-dia e vazamento de água à noite.");
+        System.out.println("Roda num banco temporário: o histórico real não é alterado.");
+        TipoPrevisao tipo = escolherEstrategia();
+        List<HoraSimulada> horas = new Simulacao24Horas(new FabricaPrevisao(configuracao), territorio)
+                .executar(LocalDate.now(), tipo);
+
+        Map<NivelAlerta, Integer> totalPorNivel = new EnumMap<>(NivelAlerta.class);
+        for (HoraSimulada hora : horas) {
+            System.out.println();
+            StringBuilder leituras = new StringBuilder(String.format("%02dh ", hora.dataHora().getHour()));
+            for (Medicao medicao : hora.leituras()) {
+                leituras.append(" | ").append(medicao.sensorId()).append(' ').append(medicao.valorFormatado());
+            }
+            System.out.println(leituras);
+            for (Alerta alerta : hora.alertas()) {
+                System.out.println("     " + alerta.explicacao());
+                totalPorNivel.merge(alerta.nivel(), 1, Integer::sum);
+            }
+        }
+        System.out.println();
+        if (totalPorNivel.isEmpty()) {
+            System.out.println("Resumo do dia: nenhum alerta.");
+            return;
+        }
+        StringBuilder resumo = new StringBuilder("Resumo do dia:");
+        totalPorNivel.forEach((nivel, total) -> resumo.append(' ').append(total).append(' ').append(nivel.getRotulo()).append(';'));
+        System.out.println(resumo.substring(0, resumo.length() - 1) + ".");
     }
 
     // ---------- 7. Simulação de problemas ----------
