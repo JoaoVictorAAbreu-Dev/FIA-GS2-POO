@@ -46,13 +46,15 @@ public abstract class BaseDAO {
     /**
      * Executa um INSERT e devolve o id gerado pelo banco ({@code AUTO_INCREMENT}).
      *
-     * @throws FonteIndisponivelException se o banco falhar
+     * @throws FonteIndisponivelException se o banco falhar ou não devolver o id
      */
     protected long inserirRetornandoId(String sql, StatementPreparer preparer) throws FonteIndisponivelException {
         try (Connection conn = fabricaConexao.abrirConexao();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
             preparer.prepare(stmt);
             stmt.executeUpdate();
+
             try (ResultSet chaves = stmt.getGeneratedKeys()) {
                 if (!chaves.next()) {
                     throw new FonteIndisponivelException(FabricaConexao.ID_FONTE,

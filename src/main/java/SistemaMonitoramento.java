@@ -201,12 +201,13 @@ public class SistemaMonitoramento {
     }
 
     private void verAlertas() throws FonteIndisponivelException {
-        List<Alerta> alertas = servico.alertasEmitidos();
+        int quantidade = lerInteiro("Quantos alertas mostrar? (0 = todos): ");
+        List<Alerta> alertas = quantidade == 0 ? servico.alertasEmitidos() : servico.ultimosAlertas(quantidade);
         if (alertas.isEmpty()) {
             System.out.println("Nenhum alerta emitido até agora.");
             return;
         }
-        System.out.println("Alertas emitidos (" + alertas.size() + "), do mais recente ao mais antigo:");
+        System.out.println("Alertas (" + alertas.size() + "), do mais recente ao mais antigo:");
         for (Alerta alerta : alertas) {
             System.out.println("  #" + alerta.id() + "  " + alerta.dataHora().format(DATA_HORA) + "  " + alerta.explicacao());
         }

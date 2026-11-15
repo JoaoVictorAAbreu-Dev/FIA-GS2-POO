@@ -98,4 +98,9 @@ public class ServicoMonitoramento {
     public List<Alerta> alertasEmitidos() throws FonteIndisponivelException {
         return alertaDAO.listarTodos();
     }
+
+    /** Os {@code limite} alertas mais recentes, do mais recente para o mais antigo. */
+    public List<Alerta> ultimosAlertas(int limite) throws FonteIndisponivelException {
+        return alertaDAO.listarUltimosAlertas(limite);
+    }
 }

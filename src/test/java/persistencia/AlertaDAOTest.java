@@ -3,6 +3,7 @@ package persistencia;
 import dominio.Alerta;
 import dominio.NivelAlerta;
 import dominio.TipoSensor;
+import excecao.DadosInvalidosException;
 import excecao.FonteIndisponivelException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /** Testes de integração com um H2 de verdade, em arquivo numa pasta temporária. */
 class AlertaDAOTest {
@@ -60,6 +62,27 @@ class AlertaDAOTest {
         // Assert
         assertEquals(List.of(INICIO.plusHours(2), INICIO.plusHours(1), INICIO),
                 alertas.stream().map(Alerta::dataHora).toList());
+    }
+
+    @Test
+    void ultimosAlertasTrazSoOsMaisRecentes() throws FonteIndisponivelException {
+        // Arrange
+        dao.inserir(atencao(INICIO));
+        dao.inserir(atencao(INICIO.plusHours(1)));
+        dao.inserir(atencao(INICIO.plusHours(2)));
+
+        // Act
+        List<Alerta> ultimos = dao.listarUltimosAlertas(2);
+
+        // Assert: os 2 mais recentes, na mesma ordem de listarTodos
+        assertEquals(List.of(INICIO.plusHours(2), INICIO.plusHours(1)),
+                ultimos.stream().map(Alerta::dataHora).toList());
+    }
+
+    @Test
+    void limiteDeAlertasPrecisaSerPositivo() {
+        // Act / Assert
+        assertThrows(DadosInvalidosException.class, () -> dao.listarUltimosAlertas(0));
     }
 
     private static Alerta atencao(LocalDateTime dataHora) {

@@ -47,13 +47,13 @@ public class MedicaoDAO extends BaseDAO {
         if (medicao.id() != null) {
             throw new DadosInvalidosException("A medição " + medicao.id() + " já está gravada no banco.");
         }
-        long id = inserirRetornandoId(SQL_INSERIR, stmt -> {
+        long idGerado = inserirRetornandoId(SQL_INSERIR, stmt -> {
             stmt.setString(1, medicao.sensorId());
             stmt.setString(2, medicao.tipo().name());
             stmt.setDouble(3, medicao.valor());
             stmt.setObject(4, medicao.dataHora());
         });
-        return medicao.comId(id);
+        return medicao.comId(idGerado);
     }
 
     /** Todas as medições do sensor, da mais antiga para a mais recente. */
@@ -75,7 +75,7 @@ public class MedicaoDAO extends BaseDAO {
             stmt.setString(1, id);
             stmt.setInt(2, limite);
         }, MedicaoDAO::mapear);
-        // O SQL precisa ordenar do mais recente para o mais antigo para o LIMIT pegar as últimas.
+        // O SQL ordena do mais recente para o mais antigo para o LIMIT pegar as últimas.
         Collections.reverse(maisRecentesPrimeiro);
         return maisRecentesPrimeiro;
     }

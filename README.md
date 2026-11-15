@@ -125,7 +125,7 @@ Restringir as implementações de `Sensor` não protege nenhuma regra (ninguém 
 - **`FabricaConexao`** abre as conexões e roda o `schema.sql` (`CREATE TABLE IF NOT EXISTS`) ao iniciar. A URL padrão é em arquivo para cumprir "os dados sobrevivem ao reiniciar"; os testes passam outra URL pelo construtor.
 - **`BaseDAO`** concentra o JDBC repetido: try-with-resources em conexão, `PreparedStatement` e `ResultSet`; valores sempre por `?`, nunca por concatenação; id gerado pelo banco (`AUTO_INCREMENT` + `getGeneratedKeys`).
 - **`MedicaoDAO`**: `inserir`, `buscarHistoricoPorSensor` (menu) e `buscarUltimasPorSensor(id, N)` (previsões: só as N leituras que a estratégia usa, em ordem cronológica).
-- **`AlertaDAO`**: `inserir` e `listarTodos` (mais recente primeiro).
+- **`AlertaDAO`**: `inserir`, `listarTodos` e `listarUltimosAlertas(N)` (mais recente primeiro; o menu pergunta quantos mostrar).
 - **Sem UPDATE/DELETE:** medições e alertas são imutáveis e formam o histórico que justifica cada previsão; reescrevê-los apagaria a evidência.
 - Ao ler, cada linha passa pelo construtor do `record`: um dado corrompido no banco é rejeitado em vez de entrar no cálculo.
 
@@ -135,7 +135,7 @@ Fica entre o menu e o banco: `registrarLeitura(sensor)` lê e grava (leitura inv
 
 ## Testes
 
-84 testes JUnit 5 no padrão **AAA**, em 12 classes, com vários `assertThrows` das exceções customizadas. Os valores esperados são calculados à mão nos próprios testes (ex.: média de 10..50 = 30; comparação 20 → 40 projeta 60), então um erro de cálculo deixa o teste vermelho. Sensores usam `Random` com semente fixa para serem reproduzíveis.
+86 testes JUnit 5 no padrão **AAA**, em 12 classes, com vários `assertThrows` das exceções customizadas. Os valores esperados são calculados à mão nos próprios testes (ex.: média de 10..50 = 30; comparação 20 → 40 projeta 60), então um erro de cálculo deixa o teste vermelho. Sensores usam `Random` com semente fixa para serem reproduzíveis.
 
 - **Mockito:** `ServicoMonitoramentoTest` mocka `MedicaoDAO` e `AlertaDAO` e verifica a lógica de alerta sem banco: previsão CRÍTICA grava o alerta certo (`ArgumentCaptor`), previsão abaixo do limiar ou histórico insuficiente **não** grava alerta (`never()`), leitura impossível ou sensor em falha não grava medição (`verifyNoInteractions`).
 - **DAOs:** `MedicaoDAOTest` e `AlertaDAOTest` usam um H2 de verdade em pasta temporária: id gerado, ordem do histórico, últimas N leituras, dados que sobrevivem ao reabrir o banco, registro corrompido e banco inacessível.
