@@ -3,23 +3,10 @@ package persistencia;
 import excecao.DadosInvalidosException;
 import excecao.FonteIndisponivelException;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Código JDBC comum aos DAOs: abrir conexão, preparar o comando, executar e
- * fechar tudo com try-with-resources.
- *
- * <p>Os valores sempre entram por {@link PreparedStatement} ({@code ?}),
- * nunca por concatenação de String no SQL. Falha do banco vira
- * {@link FonteIndisponivelException}; linha corrompida vira
- * {@link DadosInvalidosException}.</p>
- */
 public abstract class BaseDAO {
 
     /** Preenche os {@code ?} do comando (índices começam em 1). */
@@ -43,25 +30,21 @@ public abstract class BaseDAO {
         this.fabricaConexao = fabricaConexao;
     }
 
-    /**
-     * Executa um INSERT e devolve o id gerado pelo banco ({@code AUTO_INCREMENT}).
-     *
-     * @throws FonteIndisponivelException se o banco falhar
-     */
-    protected long inserirRetornandoId(String sql, StatementPreparer preparer) throws FonteIndisponivelException {
+    /** Preenche os {@code ?} do comando (índices começam em 1). */
+    protected long executarUpdate(String sql, StatementPreparer preparer) throws FonteIndisponivelException {
         try (Connection conn = fabricaConexao.abrirConexao();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
             preparer.prepare(stmt);
             stmt.executeUpdate();
-            try (ResultSet chaves = stmt.getGeneratedKeys()) {
-                if (!chaves.next()) {
-                    throw new FonteIndisponivelException(FabricaConexao.ID_FONTE,
-                            "O banco gravou o registro, mas não devolveu o id gerado.");
-                }
-                return chaves.getLong(1);
+
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    return rs.getLong(1);
+                } throw new FonteIndisponivelException(FabricaConexao.ID_FONTE, "O banco gravou o registro, mas não devolveu o id gerado.");
             }
         } catch (SQLException e) {
-            throw falhaNoBanco("gravar", e);
+            throw falhaNoBanco("consultar ", e);
         }
     }
 
