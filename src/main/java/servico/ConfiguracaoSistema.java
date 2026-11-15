@@ -36,9 +36,9 @@ public final class ConfiguracaoSistema {
 
     static {
         Map<TipoSensor, Double> limiares = new EnumMap<>(TipoSensor.class);
-        limiares.put(TipoSensor.TEMPERATURA, 35.0);   // °C: calor extremo para a região
         limiares.put(TipoSensor.PRECIPITACAO, 30.0);  // mm/h: chuva forte, risco de alagamento
-        limiares.put(TipoSensor.CONSUMO_AGUA, 120.0); // m³/h: acima do consumo típico do setor
+        limiares.put(TipoSensor.NIVEL_CORREGO, 2.0);  // m: 1 m abaixo do ponto em que a água sai da margem
+        limiares.put(TipoSensor.UMIDADE_SOLO, 80.0);  // %: solo perto da saturação, a chuva passa a escorrer
         LIMIARES_PADRAO = Collections.unmodifiableMap(limiares);
     }
 

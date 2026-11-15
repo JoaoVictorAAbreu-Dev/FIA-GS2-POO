@@ -14,14 +14,20 @@ import excecao.DadosInvalidosException;
  */
 public enum TipoSensor {
 
-    /** Temperatura do ar. Degrau de 3 °C: limiar 35 → ATENÇÃO 35, ALERTA 38, CRÍTICO 41. */
-    TEMPERATURA("temperatura", "°C", -20.0, 60.0, 3.0),
-
-    /** Intensidade de chuva. Degrau de 15 mm/h: limiar 30 → 30, 45, 60. */
+    /** Intensidade de chuva. Degrau de 15 mm/h: limiar 30 → ATENÇÃO 30, ALERTA 45, CRÍTICO 60. */
     PRECIPITACAO("chuva", "mm/h", 0.0, 300.0, 15.0),
 
-    /** Vazão consumida por um setor de abastecimento. Degrau de 30 m³/h: limiar 120 → 120, 150, 180. */
-    CONSUMO_AGUA("consumo de água", "m³/h", 0.0, 1000.0, 30.0);
+    /**
+     * Altura da água no córrego, medida a partir do fundo. Degrau de 0,5 m:
+     * limiar 2,0 → 2,0, 2,5, 3,0 m (no exemplo, 3,0 m é onde a água passa da margem).
+     */
+    NIVEL_CORREGO("nível do córrego", "m", 0.0, 8.0, 0.5),
+
+    /**
+     * Umidade do solo de uma encosta ou área de várzea. Solo saturado não absorve
+     * mais chuva, e a água escorre para o córrego. Degrau de 7 pontos: limiar 80 → 80, 87, 94 %.
+     */
+    UMIDADE_SOLO("umidade do solo", "%", 0.0, 100.0, 7.0);
 
     private final String descricao;          // nome usado nas mensagens ("chuva")
     private final String unidade;            // unidade exibida após o valor ("mm/h")
@@ -49,7 +55,7 @@ public enum TipoSensor {
                     "Medição de " + descricao + " inválida: o valor precisa ser um número finito; recebido: "
                             + Formatos.numero(valor) + ".");
         }
-        // Mensagem mais clara para grandezas que não podem ser negativas (chuva, consumo).
+        // Mensagem mais clara para grandezas que não podem ser negativas (chuva, nível, umidade).
         if (valor < 0 && minimoFisico == 0) {
             throw new DadosInvalidosException(
                     "Medição de " + descricao + " negativa: " + formatar(valor) + ".");

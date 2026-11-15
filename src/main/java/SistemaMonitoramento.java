@@ -4,10 +4,10 @@ import dominio.Medicao;
 import dominio.NivelAlerta;
 import dominio.PontoMonitoramento;
 import dominio.ResultadoPrevisao;
-import dominio.SensorConsumoAgua;
+import dominio.SensorNivelCorrego;
 import dominio.SensorPluviometro;
 import dominio.SensorSimulado;
-import dominio.SensorTemperatura;
+import dominio.SensorUmidadeSolo;
 import dominio.TipoSensor;
 import excecao.DadosInvalidosException;
 import excecao.FonteIndisponivelException;
@@ -55,9 +55,9 @@ public class SistemaMonitoramento {
         territorio = new DadosTerritorio("Bacia do Córrego Aricanduva", "Zona Leste", 150_000, CODIGO_ACESSO,
                 configuracao.getLimiaresPadrao());
         sensores = List.of(
-                new SensorPluviometro("PLU-01", "Pluviômetro do córrego", "Zona Leste"),
-                new SensorTemperatura("TMP-01", "Termômetro da praça central", "Zona Leste"),
-                new SensorConsumoAgua("AGU-01", "Macromedidor do setor 3", "Zona Leste"));
+                new SensorPluviometro("PLU-01", "Pluviômetro da estação", "Zona Leste"),
+                new SensorNivelCorrego("NIV-01", "Régua de nível do córrego", "Zona Leste"),
+                new SensorUmidadeSolo("UMI-01", "Sonda de umidade da encosta", "Zona Leste"));
         ponto = new PontoMonitoramento("PT-01", "Estação Córrego Aricanduva", "Zona Leste");
         sensores.forEach(ponto::adicionarSensor);
         servico = new ServicoMonitoramento(new MedicaoDAO(fabricaConexao), new AlertaDAO(fabricaConexao),
@@ -295,7 +295,7 @@ public class SistemaMonitoramento {
     // ---------- 8. Simulação de 24 horas (bônus) ----------
 
     private void simular24Horas() throws FonteIndisponivelException {
-        System.out.println("Dia simulado: chuva forte à tarde, calor ao meio-dia e vazamento de água à noite.");
+        System.out.println("Dia simulado: chuva forte à tarde, córrego passando da margem no fim da tarde e solo encharcado à noite.");
         System.out.println("Roda num banco temporário: o histórico real não é alterado.");
         TipoPrevisao tipo = escolherEstrategia();
         List<HoraSimulada> horas = new Simulacao24Horas(new FabricaPrevisao(configuracao), territorio)

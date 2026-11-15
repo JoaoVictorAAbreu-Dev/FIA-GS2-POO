@@ -30,8 +30,9 @@ import java.util.UUID;
  * misturado com dados de um dia inventado. O banco é descartado ao final.</p>
  *
  * <p>O cenário é fixo para ser reproduzível: chuva forte à tarde (pico de
- * 80 mm/h às 14h), calor no meio do dia (40 °C às 15h) e um vazamento de água
- * que começa às 19h.</p>
+ * 80 mm/h às 14h); o córrego sobe com atraso e passa da margem (3,0 m) entre
+ * 15h e 20h, depois que a chuva já diminuiu; e o solo fica saturado a partir
+ * das 14h e continua encharcado à noite.</p>
  */
 public class Simulacao24Horas {
 
@@ -40,11 +41,11 @@ public class Simulacao24Horas {
     // Valor de cada sensor em cada hora do dia (posição 0 = 00h, posição 23 = 23h).
     static final double[] CHUVA = {
             0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 15, 30, 45, 65, 80, 70, 45, 25, 10, 3, 0, 0, 0, 0};
-    static final double[] TEMPERATURA = {
-            22, 21, 21, 20, 20, 21, 23, 25, 28, 31, 33, 35, 37, 38, 39, 40, 39, 37, 34, 31, 28, 26, 24, 23};
-    static final double[] CONSUMO_AGUA = {
-            60, 55, 50, 50, 55, 65, 90, 110, 115, 105, 95, 90, 95, 100, 95, 90, 95, 105, 110, 140, 160, 170, 175,
-            180};
+    static final double[] NIVEL_CORREGO = {
+            1.0, 1.0, 0.9, 0.9, 0.9, 0.9, 1.0, 1.0, 1.0, 1.0, 1.1, 1.3, 1.6, 2.0, 2.5, 3.0, 3.5, 3.6, 3.4, 3.0, 2.6,
+            2.2, 1.9, 1.7};
+    static final double[] UMIDADE_SOLO = {
+            58, 58, 57, 57, 56, 56, 55, 55, 55, 57, 62, 70, 78, 85, 92, 96, 97, 97, 96, 95, 94, 92, 90, 88};
 
     private final FabricaPrevisao fabricaPrevisao;
     private final DadosTerritorio territorio;
@@ -89,8 +90,8 @@ public class Simulacao24Horas {
             throws FonteIndisponivelException {
         List<Sensor> sensores = List.of(
                 new SensorRoteirizado("PLU-01", TipoSensor.PRECIPITACAO, CHUVA),
-                new SensorRoteirizado("TMP-01", TipoSensor.TEMPERATURA, TEMPERATURA),
-                new SensorRoteirizado("AGU-01", TipoSensor.CONSUMO_AGUA, CONSUMO_AGUA));
+                new SensorRoteirizado("NIV-01", TipoSensor.NIVEL_CORREGO, NIVEL_CORREGO),
+                new SensorRoteirizado("UMI-01", TipoSensor.UMIDADE_SOLO, UMIDADE_SOLO));
 
         List<HoraSimulada> horas = new ArrayList<>();
         for (int hora = 0; hora < HORAS; hora++) {

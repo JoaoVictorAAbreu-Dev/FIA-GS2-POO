@@ -20,9 +20,9 @@ class DadosTerritorioTest {
     @BeforeEach
     void prepararTerritorio() {
         Map<TipoSensor, Double> limiares = new EnumMap<>(TipoSensor.class);
-        limiares.put(TipoSensor.TEMPERATURA, 35.0);
         limiares.put(TipoSensor.PRECIPITACAO, 30.0);
-        limiares.put(TipoSensor.CONSUMO_AGUA, 120.0);
+        limiares.put(TipoSensor.NIVEL_CORREGO, 2.0);
+        limiares.put(TipoSensor.UMIDADE_SOLO, 80.0);
         territorio = new DadosTerritorio("Bacia do Córrego", "Zona Leste", 45_000, CODIGO, limiares);
     }
 
@@ -61,9 +61,9 @@ class DadosTerritorioTest {
     void recusaLimiarAcimaDaFaixaFisicaENaoNumerico() {
         // Act / Assert
         assertThrows(DadosInvalidosException.class,
-                () -> territorio.alterarLimiar(CODIGO, TipoSensor.TEMPERATURA, 80.0));
+                () -> territorio.alterarLimiar(CODIGO, TipoSensor.UMIDADE_SOLO, 95.0));
         assertThrows(DadosInvalidosException.class,
-                () -> territorio.alterarLimiar(CODIGO, TipoSensor.TEMPERATURA, Double.NaN));
+                () -> territorio.alterarLimiar(CODIGO, TipoSensor.NIVEL_CORREGO, Double.NaN));
     }
 
     @Test
@@ -110,7 +110,7 @@ class DadosTerritorioTest {
     void construtorExigeTodosOsLimiares() {
         // Arrange
         Map<TipoSensor, Double> incompleto = new EnumMap<>(TipoSensor.class);
-        incompleto.put(TipoSensor.TEMPERATURA, 35.0);
+        incompleto.put(TipoSensor.PRECIPITACAO, 30.0);
 
         // Act / Assert
         assertThrows(DadosInvalidosException.class,

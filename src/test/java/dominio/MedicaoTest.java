@@ -49,17 +49,17 @@ class MedicaoTest {
     void rejeitaValoresNaoFinitos(double valor) {
         // Arrange / Act
         DadosInvalidosException erro = assertThrows(DadosInvalidosException.class,
-                () -> Medicao.nova("TMP-01", TipoSensor.TEMPERATURA, valor, AGORA));
+                () -> Medicao.nova("NIV-01", TipoSensor.NIVEL_CORREGO, valor, AGORA));
 
         // Assert
         assertTrue(erro.getMessage().contains("número finito"), erro.getMessage());
     }
 
     @Test
-    void rejeitaTemperaturaForaDaFaixaFisica() {
+    void rejeitaUmidadeForaDaFaixaFisica() {
         // Arrange / Act
         DadosInvalidosException erro = assertThrows(DadosInvalidosException.class,
-                () -> Medicao.nova("TMP-01", TipoSensor.TEMPERATURA, 75.0, AGORA));
+                () -> Medicao.nova("UMI-01", TipoSensor.UMIDADE_SOLO, 120.0, AGORA));
 
         // Assert
         assertTrue(erro.getMessage().contains("fora da faixa física"), erro.getMessage());
@@ -68,24 +68,24 @@ class MedicaoTest {
     @Test
     void aceitaValoresNosExtremosDaFaixa() {
         // Arrange / Act
-        Medicao minima = Medicao.nova("AGU-01", TipoSensor.CONSUMO_AGUA, 0.0, AGORA);
-        Medicao maxima = Medicao.nova("AGU-01", TipoSensor.CONSUMO_AGUA, 1000.0, AGORA);
+        Medicao minima = Medicao.nova("NIV-01", TipoSensor.NIVEL_CORREGO, 0.0, AGORA);
+        Medicao maxima = Medicao.nova("NIV-01", TipoSensor.NIVEL_CORREGO, 8.0, AGORA);
 
         // Assert
         assertEquals(0.0, minima.valor());
-        assertEquals(1000.0, maxima.valor());
+        assertEquals(8.0, maxima.valor());
     }
 
     @Test
     void rejeitaCamposObrigatoriosAusentesEIdNaoPositivo() {
         // Arrange / Act / Assert
         assertThrows(DadosInvalidosException.class,
-                () -> Medicao.nova(" ", TipoSensor.TEMPERATURA, 20.0, AGORA));
+                () -> Medicao.nova(" ", TipoSensor.UMIDADE_SOLO, 60.0, AGORA));
         assertThrows(DadosInvalidosException.class,
-                () -> Medicao.nova("TMP-01", null, 20.0, AGORA));
+                () -> Medicao.nova("UMI-01", null, 60.0, AGORA));
         assertThrows(DadosInvalidosException.class,
-                () -> Medicao.nova("TMP-01", TipoSensor.TEMPERATURA, 20.0, null));
+                () -> Medicao.nova("UMI-01", TipoSensor.UMIDADE_SOLO, 60.0, null));
         assertThrows(DadosInvalidosException.class,
-                () -> new Medicao(0L, "TMP-01", TipoSensor.TEMPERATURA, 20.0, AGORA));
+                () -> new Medicao(0L, "UMI-01", TipoSensor.UMIDADE_SOLO, 60.0, AGORA));
     }
 }

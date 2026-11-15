@@ -25,9 +25,9 @@ class AlertaTest {
     @BeforeEach
     void prepararTerritorio() {
         Map<TipoSensor, Double> limiares = new EnumMap<>(TipoSensor.class);
-        limiares.put(TipoSensor.TEMPERATURA, 35.0);
         limiares.put(TipoSensor.PRECIPITACAO, 30.0);
-        limiares.put(TipoSensor.CONSUMO_AGUA, 120.0);
+        limiares.put(TipoSensor.NIVEL_CORREGO, 2.0);
+        limiares.put(TipoSensor.UMIDADE_SOLO, 80.0);
         territorio = new DadosTerritorio("Bacia do Córrego", "Zona Leste", 45_000, "coord-2026", limiares);
     }
 
@@ -68,13 +68,13 @@ class AlertaTest {
 
     @Test
     void usaOLimiarDoTipoDaPropriaPrevisao() {
-        // Arrange: 100 m³/h é consumo normal (limiar 120). Com o limiar de temperatura (35)
+        // Arrange: 70% de umidade é normal (limiar 80). Com o limiar de chuva (30)
         // por engano, viraria CRÍTICO; avaliar busca o limiar certo sozinho.
-        ResultadoPrevisao consumo = new PrevisaoMediaMovel(5)
-                .prever(HistoricoDeTeste.de("AGU-01", TipoSensor.CONSUMO_AGUA, 100, 100, 100, 100, 100));
+        ResultadoPrevisao umidade = new PrevisaoMediaMovel(5)
+                .prever(HistoricoDeTeste.de("UMI-01", TipoSensor.UMIDADE_SOLO, 70, 70, 70, 70, 70));
 
         // Act
-        Optional<Alerta> alerta = Alerta.avaliar(consumo, territorio, AGORA);
+        Optional<Alerta> alerta = Alerta.avaliar(umidade, territorio, AGORA);
 
         // Assert
         assertTrue(alerta.isEmpty());

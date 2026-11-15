@@ -20,9 +20,9 @@ class SensorTest {
     void cadaSensorGeraMedicoesValidasDoProprioTipo() throws FonteIndisponivelException {
         // Arrange
         List<SensorSimulado> sensores = List.of(
-                new SensorTemperatura("TMP-01", "Termômetro Praça Central", "Zona Leste", new Random(1)),
+                new SensorNivelCorrego("NIV-01", "Régua do córrego", "Zona Leste", new Random(1)),
                 new SensorPluviometro("PLU-01", "Pluviômetro Córrego", "Zona Leste", new Random(2)),
-                new SensorConsumoAgua("AGU-01", "Macromedidor Setor 3", "Zona Leste", new Random(3)));
+                new SensorUmidadeSolo("UMI-01", "Sonda da encosta", "Zona Leste", new Random(3)));
 
         for (SensorSimulado sensor : sensores) {
             for (int i = 0; i < 500; i++) {
@@ -56,7 +56,7 @@ class SensorTest {
     @Test
     void sensorRestabelecidoVoltaALer() throws FonteIndisponivelException {
         // Arrange
-        SensorTemperatura sensor = new SensorTemperatura("TMP-02", "Termômetro UBS", "Zona Sul", new Random(5));
+        SensorNivelCorrego sensor = new SensorNivelCorrego("NIV-02", "Régua da ponte", "Zona Sul", new Random(5));
         sensor.simularFalha();
 
         // Act
@@ -65,23 +65,23 @@ class SensorTest {
 
         // Assert
         assertEquals(StatusComponente.OPERACIONAL, sensor.verificarStatus());
-        assertTrue(valor >= -20 && valor <= 60);
+        assertTrue(valor >= 0 && valor <= 8, "nível fora da faixa: " + valor);
     }
 
     @Test
     void pontoDeMonitoramentoDerivaStatusDosSensores() {
         // Arrange
-        SensorTemperatura termometro = new SensorTemperatura("TMP-01", "Termômetro", "Zona Leste");
+        SensorNivelCorrego regua = new SensorNivelCorrego("NIV-01", "Régua", "Zona Leste");
         SensorPluviometro pluviometro = new SensorPluviometro("PLU-01", "Pluviômetro", "Zona Leste");
         PontoMonitoramento ponto = new PontoMonitoramento("PT-01", "Estação Córrego", "Zona Leste");
-        ponto.adicionarSensor(termometro);
+        ponto.adicionarSensor(regua);
         ponto.adicionarSensor(pluviometro);
 
         // Act
         StatusComponente todosOk = ponto.verificarStatus();
         pluviometro.simularFalha();
         StatusComponente umEmFalha = ponto.verificarStatus();
-        termometro.simularFalha();
+        regua.simularFalha();
         StatusComponente nenhum = ponto.verificarStatus();
 
         // Assert
@@ -93,7 +93,7 @@ class SensorTest {
     @Test
     void statusDoSensorMudaJuntoComAFalhaSemPrecisarVerificar() {
         // Arrange
-        SensorTemperatura sensor = new SensorTemperatura("TMP-03", "Termômetro", "Zona Oeste");
+        SensorNivelCorrego sensor = new SensorNivelCorrego("NIV-03", "Régua", "Zona Oeste");
 
         // Act
         sensor.simularFalha();
@@ -145,7 +145,7 @@ class SensorTest {
     @Test
     void restabelecerCorrigeDefeitoDeCalibracao() throws FonteIndisponivelException {
         // Arrange
-        SensorConsumoAgua sensor = new SensorConsumoAgua("AGU-05", "Macromedidor", "Zona Sul", new Random(8));
+        SensorUmidadeSolo sensor = new SensorUmidadeSolo("UMI-05", "Sonda", "Zona Sul", new Random(8));
         sensor.simularDefeitoDeCalibracao();
 
         // Act
@@ -175,7 +175,7 @@ class SensorTest {
     @Test
     void falhaTemPrioridadeSobreDefeito() {
         // Arrange
-        SensorTemperatura sensor = new SensorTemperatura("TMP-05", "Termômetro", "Zona Sul");
+        SensorNivelCorrego sensor = new SensorNivelCorrego("NIV-05", "Régua", "Zona Sul");
         sensor.simularDefeitoDeCalibracao();
 
         // Act
@@ -194,25 +194,25 @@ class SensorTest {
         // Act / Assert
         assertThrows(excecao.DadosInvalidosException.class, () -> ponto.adicionarSensor(null));
         assertThrows(excecao.DadosInvalidosException.class,
-                () -> new SensorTemperatura("TMP-06", "Termômetro", "Zona Sul", null));
+                () -> new SensorNivelCorrego("NIV-06", "Régua", "Zona Sul", null));
     }
 
     @Test
     void pontoRejeitaSensorComIdRepetido() {
         // Arrange
         PontoMonitoramento ponto = new PontoMonitoramento("PT-01", "Estação", "Zona Leste");
-        ponto.adicionarSensor(new SensorTemperatura("TMP-01", "Termômetro A", "Zona Leste"));
+        ponto.adicionarSensor(new SensorNivelCorrego("NIV-01", "Régua A", "Zona Leste"));
 
         // Act / Assert
         assertThrows(excecao.DadosInvalidosException.class,
-                () -> ponto.adicionarSensor(new SensorTemperatura("TMP-01", "Termômetro B", "Zona Leste")));
+                () -> ponto.adicionarSensor(new SensorNivelCorrego("NIV-01", "Régua B", "Zona Leste")));
     }
 
     @Test
     void componenteExigeIdNomeERegiao() {
         // Act / Assert
         assertThrows(excecao.DadosInvalidosException.class,
-                () -> new SensorTemperatura("", "Termômetro", "Zona Leste"));
+                () -> new SensorNivelCorrego("", "Régua", "Zona Leste"));
         assertThrows(excecao.DadosInvalidosException.class,
                 () -> new PontoMonitoramento("PT-01", "Estação", null));
     }

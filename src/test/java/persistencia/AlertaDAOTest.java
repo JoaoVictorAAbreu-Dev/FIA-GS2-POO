@@ -86,7 +86,7 @@ class AlertaDAOTest {
     }
 
     private static Alerta atencao(LocalDateTime dataHora) {
-        return new Alerta(null, "TMP-01", TipoSensor.TEMPERATURA, NivelAlerta.ATENCAO, 36.0, 35.0,
+        return new Alerta(null, "NIV-01", TipoSensor.NIVEL_CORREGO, NivelAlerta.ATENCAO, 2.1, 2.0,
                 "Média móvel", dataHora);
     }
 }

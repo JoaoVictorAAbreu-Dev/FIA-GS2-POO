@@ -90,14 +90,31 @@ class Simulacao24HorasTest {
     }
 
     @Test
-    void vazamentoNoturnoGeraAlertaDeConsumo() throws FonteIndisponivelException {
+    void corregoPassaDaMargemDepoisQueAChuvaDiminui() throws FonteIndisponivelException {
         // Act
         List<HoraSimulada> horas = simulacao.executar(DIA, TipoPrevisao.MEDIA_MOVEL);
 
-        // Assert: limiar 120 → 20h: 122 (ATENÇÃO) · 21h: 137 · 22h: 151 (ALERTA) · 23h: 165
+        // Assert: limiar 2,0 m → ALERTA 2,5 · CRÍTICO 3,0. Média das 5 últimas:
+        // 15h: 2,08 · 16h: 2,52 · 17h: 2,92 · 18h: 3,2 · 19h: 3,3 · 20h: 3,22 · 21h: 2,96 · 22h: 2,62 · 23h: 2,28
         Map<Integer, NivelAlerta> esperado = new TreeMap<>(Map.of(
-                20, NivelAlerta.ATENCAO, 21, NivelAlerta.ATENCAO, 22, NivelAlerta.ALERTA, 23, NivelAlerta.ALERTA));
-        assertEquals(esperado, niveisPorHora(horas, "AGU-01"));
+                15, NivelAlerta.ATENCAO, 16, NivelAlerta.ALERTA, 17, NivelAlerta.ALERTA,
+                18, NivelAlerta.CRITICO, 19, NivelAlerta.CRITICO, 20, NivelAlerta.CRITICO,
+                21, NivelAlerta.ALERTA, 22, NivelAlerta.ALERTA, 23, NivelAlerta.ATENCAO));
+        assertEquals(esperado, niveisPorHora(horas, "NIV-01"));
+    }
+
+    @Test
+    void soloSaturadoContinuaEmAlertaANoite() throws FonteIndisponivelException {
+        // Act
+        List<HoraSimulada> horas = simulacao.executar(DIA, TipoPrevisao.MEDIA_MOVEL);
+
+        // Assert: limiar 80% → ALERTA 87 · CRÍTICO 94. Média das 5 últimas:
+        // 15h: 84,2 · 16h: 89,6 · 17h: 93,4 · 18h: 95,6 · 19h: 96,2 · 20h: 95,8 · 21h: 94,8 · 22h: 93,4 · 23h: 91,8
+        Map<Integer, NivelAlerta> esperado = new TreeMap<>(Map.of(
+                15, NivelAlerta.ATENCAO, 16, NivelAlerta.ALERTA, 17, NivelAlerta.ALERTA,
+                18, NivelAlerta.CRITICO, 19, NivelAlerta.CRITICO, 20, NivelAlerta.CRITICO, 21, NivelAlerta.CRITICO,
+                22, NivelAlerta.ALERTA, 23, NivelAlerta.ALERTA));
+        assertEquals(esperado, niveisPorHora(horas, "UMI-01"));
     }
 
     @Test
