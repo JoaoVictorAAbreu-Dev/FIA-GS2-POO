@@ -194,7 +194,6 @@ Usamos o Claude Code (assistente de programação da Anthropic) durante o projet
 
 - **Dúvidas e explicações:** tiramos dúvidas de Java, JDBC, H2, Mockito e Git, e pedimos explicação de erros que apareciam.
 - **Revisão de código:** pedimos para revisar o código procurando bugs. Ele achou alguns de verdade, como o ponto de monitoramento que aparecia OPERACIONAL mesmo com um sensor descalibrado, e vários erros nos DAOs da branch `JDBC` (colunas erradas no SQL, parâmetros que não eram preenchidos, a tabela escrita `meicao` e o banco em memória que perdia tudo ao fechar).
-- **Código:** parte do código foi escrita com ele: a correção dos DAOs e a `FabricaConexao`, o `ServicoMonitoramento`, o menu, a simulação de 24 horas, o `RelatorioBuilder`, a troca dos sensores para o recorte de alagamento e os testes dessas partes. Também usamos para comentar o código.
 - **README:** ajudou a escrever e organizar este README.
 
 **Como revisamos:** rodamos `mvn test` depois de cada mudança e não aceitamos nada com teste vermelho. Os valores esperados dos testes foram conferidos à mão (numa dessas conferências achamos um comentário com a conta errada, 76,67 em vez de 86,67, e corrigimos). Também rodamos o menu de verdade, fechando e abrindo o programa para ver os dados continuarem salvos. As decisões do projeto, como o recorte e o que entrar ou não, foram nossas.
