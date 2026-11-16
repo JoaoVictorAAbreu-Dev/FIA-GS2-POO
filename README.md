@@ -2,15 +2,24 @@
 
 Plataforma de monitoramento territorial em console (tema **CitizenTech**). O sistema lê sensores simulados, prevê o próximo valor de cada sensor a partir do histórico e emite alertas **ATENÇÃO / ALERTA / CRÍTICO** explicando o motivo.
 
-> **Estado atual:** domínio, exceções, previsões, alertas, padrões criacionais, persistência JDBC com H2 (`MedicaoDAO`/`AlertaDAO`), `ServicoMonitoramento`, menu (`SistemaMonitoramento`) e teste com Mockito estão implementados e testados. Veja [Pendências](#pendências).
+## Integrantes
+
+| Nome completo | RM |
+|---|---|
+| João Victor Alves de Abreu | 564946 |
+| Rodrigo Kenshin Viana Matayoshi | 564026 |
 
 ## Recorte e público beneficiado
 
 **Recorte escolhido: 🌊 Clima local, chuva intensa e risco de alagamento em pontos vulneráveis.**
 
-**Quem sofre o problema:** moradores de áreas baixas e de encostas na bacia de um córrego urbano, onde chuva forte faz a água sair da margem e o solo encharcado aumenta o risco de deslizamento. **Quem usa o sistema:** a coordenação de uma associação de bairro ou a Defesa Civil local. A pergunta que o sistema ajuda a responder é: *"o córrego vai transbordar nas próximas horas, e o que fazer hoje?"*. Ele **apoia** decisões como reforçar a vigilância do córrego, avisar moradores das áreas baixas, deixar abrigos de prontidão ou acionar o plano de contingência. Ele não toma essas decisões.
+Escolhemos esse recorte porque alagamento é um problema que se repete todo ano em muitos bairros, e quase sempre dá algum sinal antes: a chuva aperta, o córrego começa a subir, o solo já não absorve mais nada.
 
-**Por que esses três sensores:** os três medem partes do mesmo problema, em momentos diferentes.
+**Quem sofre com isso** são as famílias que moram nas partes baixas e nas encostas perto de córregos urbanos. Quando a água sai da margem, elas perdem móveis, ficam sem conseguir sair de casa e, nas encostas, correm risco de deslizamento.
+
+**Quem usaria o sistema** é a coordenação de uma associação de bairro ou a Defesa Civil local. A pergunta que a gente quer ajudar a responder é: *"o córrego vai transbordar nas próximas horas, e o que dá para fazer hoje?"*. Com o alerta em mãos, a coordenação pode reforçar a vigilância do córrego, avisar quem mora nas áreas baixas, deixar um abrigo de prontidão ou acionar o plano de contingência. O sistema não decide nada disso sozinho, só mostra os números e o motivo do alerta para quem vai decidir.
+
+**Por que esses três sensores:** cada um mostra uma parte do mesmo problema, em momentos diferentes.
 
 | Sensor | O que mede | Por que importa para alagamento |
 |---|---|---|
@@ -181,38 +190,20 @@ Opção **8** do menu. Simula um dia inteiro, com uma leitura de cada sensor por
 
 ## Uso de IA
 
-> **Rascunho para a equipe revisar.** A lista abaixo descreve o que foi feito com o Claude Code (assistente de programação da Anthropic) e pode ser conferida no histórico de commits. Completem com o uso de IA em etapas anteriores, se houve, e com a revisão que cada integrante fez.
+Usamos o Claude Code (assistente de programação da Anthropic) durante o projeto, e não só para tirar dúvidas. Para ficar claro o que foi dele e o que foi nosso:
 
-**Onde usamos:**
+- **Dúvidas e explicações:** tiramos dúvidas de Java, JDBC, H2, Mockito e Git, e pedimos explicação de erros que apareciam.
+- **Revisão de código:** pedimos para revisar o código procurando bugs. Ele achou alguns de verdade, como o ponto de monitoramento que aparecia OPERACIONAL mesmo com um sensor descalibrado, e vários erros nos DAOs da branch `JDBC` (colunas erradas no SQL, parâmetros que não eram preenchidos, a tabela escrita `meicao` e o banco em memória que perdia tudo ao fechar).
+- **Código:** parte do código foi escrita com ele: a correção dos DAOs e a `FabricaConexao`, o `ServicoMonitoramento`, o menu, a simulação de 24 horas, o `RelatorioBuilder`, a troca dos sensores para o recorte de alagamento e os testes dessas partes. Também usamos para comentar o código.
+- **README:** ajudou a escrever e organizar este README.
 
-- Comentários explicativos no código e revisão de bugs. Um bug real foi encontrado: o ponto de monitoramento com sensor descalibrado aparecia como OPERACIONAL.
-- Revisão e correção dos DAOs da branch `JDBC`: SQL com colunas erradas, parâmetros não preenchidos, tabela com nome digitado errado, banco em memória que perdia os dados.
-- `FabricaConexao`, `schema.sql`, `ServicoMonitoramento`, menu `SistemaMonitoramento`, simulação de 24 horas, `RelatorioBuilder` e os testes dessas partes.
-- Troca dos sensores de temperatura e consumo de água por nível do córrego e umidade do solo, depois que a equipe escolheu o recorte de alagamento.
-
-**Como revisamos:**
-
-- Cada mudança foi seguida de `mvn test`; nenhuma foi aceita com teste vermelho.
-- Os valores esperados dos testes são calculados à mão e escritos nos comentários (ex.: média de 5 leituras do córrego = 2,52 m → ALERTA). Durante o trabalho, um desses comentários estava errado (76,67 em vez de 86,67) e foi corrigido.
-- O menu foi rodado de verdade, inclusive fechando e abrindo o programa para conferir que os dados persistem.
-- *(Completar: como cada integrante leu e entendeu o código antes do commit.)*
+**Como revisamos:** rodamos `mvn test` depois de cada mudança e não aceitamos nada com teste vermelho. Os valores esperados dos testes foram conferidos à mão (numa dessas conferências achamos um comentário com a conta errada, 76,67 em vez de 86,67, e corrigimos). Também rodamos o menu de verdade, fechando e abrindo o programa para ver os dados continuarem salvos. As decisões do projeto, como o recorte e o que entrar ou não, foram nossas.
 
 ## Divisão de tarefas
 
 | Integrante | Responsabilidade |
 |---|---|
 | João Victor Alves de Abreu | Domínio e exceções; previsões, alertas e testes; menu e simulação de 24 horas |
-| *(nome completo do Kenshin)* | Persistência: DAOs, conexão com o H2 e consultas do histórico |
-| *(terceiro integrante, se houver)* | *(responsabilidade)* |
+| Rodrigo Kenshin Viana Matayoshi | Persistência: DAOs, conexão com o H2 e consultas do histórico |
 
-## Pendências
-
-- [x] Persistência JDBC com H2 em arquivo e configuração para a correção
-- [x] `ServicoMonitoramento` (ler sensores → gravar → prever → avaliar alerta → gravar alerta)
-- [x] Menu `SistemaMonitoramento` com `Scanner`, capturando `DadosInvalidosException` e `FonteIndisponivelException` com mensagens claras
-- [x] Teste com Mockito do DAO
-- [x] Recorte escolhido (Clima local) e sensores coerentes com ele
-- [x] `RelatorioBuilder` no status completo
-- [ ] Revisar o texto do público beneficiado
-- [ ] Completar "Uso de IA" e o nome do Kenshin (e do terceiro integrante, se houver) na divisão de tarefas
-- [x] Bônus: simulação de 24 horas (opção 8 do menu)
+O enunciado sugere 3 integrantes; nosso grupo tem 2, então as três frentes (domínio e exceções, persistência, previsões/alertas/testes) foram divididas entre nós dois.
