@@ -46,6 +46,7 @@ src/main/java/
 ├── persistencia/  FabricaConexao, BaseDAO, MedicaoDAO, AlertaDAO
 ├── servico/       ConfiguracaoSistema, FabricaPrevisao, TipoPrevisao,
 │                  ServicoMonitoramento, AvaliacaoPrevisao,
+│                  RelatorioBuilder,
 │                  Simulacao24Horas, HoraSimulada   (bônus)
 └── SistemaMonitoramento.java   (menu principal)
 src/main/resources/schema.sql   (tabelas medicao e alerta)
@@ -55,7 +56,7 @@ src/test/java/
 ├── persistencia/  MedicaoDAOTest, AlertaDAOTest   (H2 real em pasta temporária)
 └── servico/       ConfiguracaoSistemaTest, FabricaPrevisaoTest,
                    ServicoMonitoramentoTest        (DAOs mockados com Mockito),
-                   Simulacao24HorasTest
+                   Simulacao24HorasTest, RelatorioBuilderTest
 ```
 
 Os pacotes seguem a estrutura sugerida no enunciado (`dominio`, `excecao`, `persistencia`, `servico`).
@@ -122,9 +123,13 @@ Tratamento de dados ruins, igual nas duas estratégias:
 
 **Trade-off:** o acesso global é cômodo, mas cria estado compartilhado. Um teste que altera a configuração afeta os seguintes, por isso os testes chamam `restaurarPadroes()` no `@AfterEach`. Também esconde dependências; para reduzir isso, `FabricaPrevisao` recebe a configuração pelo construtor.
 
-### Builder (`RelatorioBuilder`): não implementado
+### Builder: `RelatorioBuilder`
 
-O enunciado exige **pelo menos um** padrão. Ainda não há relatório no sistema, então um Builder agora seria só enfeite. Pode ser avaliado junto com a opção "status completo" do menu.
+**Por que aqui:** o "status completo" (opção 6 do menu) é um relatório com várias seções opcionais: território, limiares por nível, componentes e seus status, configuração das previsões e alertas recentes. Um construtor ou método com todos esses parâmetros, vários opcionais, seria difícil de ler e fácil de chamar na ordem errada. Com o Builder, cada seção é um passo com nome (`comTerritorio`, `comLimiares`, `comComponentes`, `comConfiguracao`, `comAlertasRecentes`), quem chama escolhe quais entram e em que ordem, e `construir()` monta o texto. O menu só encadeia os passos; a formatação de cada seção fica num lugar só.
+
+**Por que não em outro lugar:** `Medicao` e `Alerta` têm poucos campos, todos obrigatórios, e já são `record`s validados no construtor; um Builder neles só adicionaria código.
+
+**Trade-off:** mais uma classe. `construir()` sem nenhuma seção lança `DadosInvalidosException`, para não gerar um relatório vazio.
 
 ### Por que não usamos `sealed`
 
@@ -161,7 +166,7 @@ Opção **8** do menu. Simula um dia inteiro, com uma leitura de cada sensor por
 
 ## Testes
 
-92 testes JUnit 5 no padrão **AAA**, em 13 classes, com vários `assertThrows` das exceções customizadas. Os valores esperados são calculados à mão nos próprios testes (ex.: média de 10..50 = 30; comparação 20 → 40 projeta 60), então um erro de cálculo deixa o teste vermelho. Sensores usam `Random` com semente fixa para serem reproduzíveis.
+96 testes JUnit 5 no padrão **AAA**, em 14 classes, com vários `assertThrows` das exceções customizadas. Os valores esperados são calculados à mão nos próprios testes (ex.: média de 10..50 = 30; comparação 20 → 40 projeta 60), então um erro de cálculo deixa o teste vermelho. Sensores usam `Random` com semente fixa para serem reproduzíveis.
 
 - **Mockito:** `ServicoMonitoramentoTest` mocka `MedicaoDAO` e `AlertaDAO` e verifica a lógica de alerta sem banco: previsão CRÍTICA grava o alerta certo (`ArgumentCaptor`), previsão abaixo do limiar ou histórico insuficiente **não** grava alerta (`never()`), leitura impossível ou sensor em falha não grava medição (`verifyNoInteractions`).
 - **DAOs:** `MedicaoDAOTest` e `AlertaDAOTest` usam um H2 de verdade em pasta temporária: id gerado, ordem do histórico, últimas N leituras, dados que sobrevivem ao reabrir o banco, registro corrompido e banco inacessível.
@@ -176,13 +181,29 @@ Opção **8** do menu. Simula um dia inteiro, com uma leitura de cada sensor por
 
 ## Uso de IA
 
+> **Rascunho para a equipe revisar.** A lista abaixo descreve o que foi feito com o Claude Code (assistente de programação da Anthropic) e pode ser conferida no histórico de commits. Completem com o uso de IA em etapas anteriores, se houve, e com a revisão que cada integrante fez.
+
+**Onde usamos:**
+
+- Comentários explicativos no código e revisão de bugs. Um bug real foi encontrado: o ponto de monitoramento com sensor descalibrado aparecia como OPERACIONAL.
+- Revisão e correção dos DAOs da branch `JDBC`: SQL com colunas erradas, parâmetros não preenchidos, tabela com nome digitado errado, banco em memória que perdia os dados.
+- `FabricaConexao`, `schema.sql`, `ServicoMonitoramento`, menu `SistemaMonitoramento`, simulação de 24 horas, `RelatorioBuilder` e os testes dessas partes.
+- Troca dos sensores de temperatura e consumo de água por nível do córrego e umidade do solo, depois que a equipe escolheu o recorte de alagamento.
+
+**Como revisamos:**
+
+- Cada mudança foi seguida de `mvn test`; nenhuma foi aceita com teste vermelho.
+- Os valores esperados dos testes são calculados à mão e escritos nos comentários (ex.: média de 5 leituras do córrego = 2,52 m → ALERTA). Durante o trabalho, um desses comentários estava errado (76,67 em vez de 86,67) e foi corrigido.
+- O menu foi rodado de verdade, inclusive fechando e abrindo o programa para conferir que os dados persistem.
+- *(Completar: como cada integrante leu e entendeu o código antes do commit.)*
+
 ## Divisão de tarefas
 
 | Integrante | Responsabilidade |
 |---|---|
-| *(nome)* | Domínio e exceções |
-| *(nome)* | Persistência |
-| *(nome)* | Previsões, alertas e testes |
+| João Victor Alves de Abreu | Domínio e exceções; previsões, alertas e testes; menu e simulação de 24 horas |
+| *(nome completo do Kenshin)* | Persistência: DAOs, conexão com o H2 e consultas do histórico |
+| *(terceiro integrante, se houver)* | *(responsabilidade)* |
 
 ## Pendências
 
@@ -190,5 +211,8 @@ Opção **8** do menu. Simula um dia inteiro, com uma leitura de cada sensor por
 - [x] `ServicoMonitoramento` (ler sensores → gravar → prever → avaliar alerta → gravar alerta)
 - [x] Menu `SistemaMonitoramento` com `Scanner`, capturando `DadosInvalidosException` e `FonteIndisponivelException` com mensagens claras
 - [x] Teste com Mockito do DAO
-- [ ] Recorte escolhido, público, uso de IA e divisão de tarefas preenchidos neste README
+- [x] Recorte escolhido (Clima local) e sensores coerentes com ele
+- [x] `RelatorioBuilder` no status completo
+- [ ] Revisar o texto do público beneficiado
+- [ ] Completar "Uso de IA" e o nome do Kenshin (e do terceiro integrante, se houver) na divisão de tarefas
 - [x] Bônus: simulação de 24 horas (opção 8 do menu)

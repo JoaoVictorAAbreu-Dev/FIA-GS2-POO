@@ -1,4 +1,5 @@
 import dominio.Alerta;
+import dominio.ComponenteTerritorial;
 import dominio.DadosTerritorio;
 import dominio.Medicao;
 import dominio.NivelAlerta;
@@ -18,12 +19,14 @@ import servico.AvaliacaoPrevisao;
 import servico.ConfiguracaoSistema;
 import servico.FabricaPrevisao;
 import servico.HoraSimulada;
+import servico.RelatorioBuilder;
 import servico.ServicoMonitoramento;
 import servico.Simulacao24Horas;
 import servico.TipoPrevisao;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
@@ -41,6 +44,9 @@ public class SistemaMonitoramento {
 
     /** Código da coordenação para alterar dados do território (documentado no README). */
     private static final String CODIGO_ACESSO = "coord2026";
+
+    /** Quantos alertas recentes aparecem no status completo. */
+    private static final int ALERTAS_NO_STATUS = 5;
 
     private static final DateTimeFormatter DATA_HORA = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
@@ -271,25 +277,18 @@ public class SistemaMonitoramento {
 
     // ---------- 6. Status ----------
 
-    private void mostrarStatusCompleto() {
-        System.out.println("Território: " + territorio.getNome() + " (" + territorio.getRegiao() + "), população estimada "
-                + territorio.getPopulacaoEstimada());
-        System.out.println("Limiares por nível:");
-        for (TipoSensor tipo : TipoSensor.values()) {
-            double limiar = territorio.getLimiar(tipo);
-            StringBuilder linha = new StringBuilder("  " + tipo.getDescricao() + ":");
-            for (NivelAlerta nivel : NivelAlerta.values()) {
-                linha.append(' ').append(nivel.getRotulo()).append(" ≥ ").append(tipo.formatar(nivel.limite(limiar, tipo)));
-            }
-            System.out.println(linha);
-        }
-        System.out.println("Ponto: " + ponto);
-        for (SensorSimulado sensor : sensores) {
-            System.out.println("  " + sensor + " - " + sensor.getStatus().getDescricao());
-        }
-        System.out.println("Previsões: janela " + configuracao.getJanelaMediaMovel() + ", período "
-                + configuracao.getLeiturasPorPeriodoComparacao() + ", padrão "
-                + configuracao.getTipoPrevisaoPadrao().getCodigo());
+    private void mostrarStatusCompleto() throws FonteIndisponivelException {
+        List<ComponenteTerritorial> componentes = new ArrayList<>();
+        componentes.add(ponto);
+        componentes.addAll(sensores);
+        String relatorio = new RelatorioBuilder("Status completo")
+                .comTerritorio(territorio)
+                .comLimiares(territorio)
+                .comComponentes(componentes)
+                .comConfiguracao(configuracao)
+                .comAlertasRecentes(servico.ultimosAlertas(ALERTAS_NO_STATUS))
+                .construir();
+        System.out.println(relatorio);
     }
 
     // ---------- 8. Simulação de 24 horas (bônus) ----------

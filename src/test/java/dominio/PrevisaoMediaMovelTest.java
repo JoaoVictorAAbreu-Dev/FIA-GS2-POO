@@ -58,6 +58,7 @@ class PrevisaoMediaMovelTest {
         assertEquals(4, resultado.leiturasUsadas());
         assertTrue(resultado.interpretacao().startsWith("Dados insuficientes: 4 leitura(s)"),
                 resultado.interpretacao());
+        assertTrue(resultado.interpretacao().contains("exige pelo menos 5 (faltam 1)"), resultado.interpretacao());
     }
 
     @Test

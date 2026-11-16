@@ -58,8 +58,10 @@ public record ResultadoPrevisao(String estrategia, String sensorId, TipoSensor t
     static ResultadoPrevisao dadosInsuficientes(String estrategia, String sensorId, TipoSensor tipo,
                                                 int disponiveis, int minimo) {
         String origem = sensorId == null ? "no histórico" : "no histórico de " + sensorId;
+        int faltam = minimo - disponiveis;
         String texto = "Dados insuficientes: " + disponiveis + " leitura(s) " + origem + "; a estratégia "
-                + estrategia + " exige pelo menos " + minimo + ". Nenhuma previsão nem alerta foi emitido.";
+                + estrategia + " exige pelo menos " + minimo + " (faltam " + faltam + "). "
+                + "Nenhuma previsão nem alerta foi emitido.";
         return new ResultadoPrevisao(estrategia, sensorId, tipo, OptionalDouble.empty(), disponiveis, texto);
     }
 
